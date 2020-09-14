@@ -30,6 +30,9 @@
 #include "lardata/ArtDataHelper/TrackUtils.h"
 
 
+#include "dune/AnaUtils/DUNEAnaEventUtils.h"
+#include "dune/AnaUtils/DUNEAnaPFParticleUtils.h"
+
 #include <TTree.h>
 #include <vector>
 #include <string>
@@ -72,7 +75,7 @@ private:
 
   std::vector<bool> *fMCIsPrimary;
   std::vector<int> *fMCParticlePdgCode;
-  std::vector<float> *fMCParticleTrueEnergy; 
+  std::vector<double> *fMCParticleTrueEnergy; 
   std::vector<int> *fMCParticleTrackID; 
   std::vector<int> *fMCParticleMotherTrackID; 
   std::vector<std::string> *fMCParticleStartProcess; 
@@ -94,73 +97,144 @@ private:
   std::vector<std::vector<int>> *fPFPCluView;
   std::vector<std::vector<int>> *fPFPCluNHits;
   std::vector<std::vector<double>> *fPFPCluIntegral;
-  //int fNPrimaryDaughters;
-  //std::vector<float> *fDaughterTrackLengths;
-  std::vector<std::vector<float>> *fPFPTrackLength;
-  std::vector<std::vector<float>> *fPFPTrackStartX;
-  std::vector<std::vector<float>> *fPFPTrackStartY;
-  std::vector<std::vector<float>> *fPFPTrackStartZ;
-  std::vector<std::vector<float>> *fPFPTrackEndX;
-  std::vector<std::vector<float>> *fPFPTrackEndY;
-  std::vector<std::vector<float>> *fPFPTrackEndZ;
-  std::vector<std::vector<int>> *fPFPTrackID;
-  //std::vector<std::vector<float>> *fTrackdEdx;
-  //std::vector<std::vector<float>> *fTrackResidualRange;
+
+
+  std::vector<int> *fPFPTrackID;
+  std::vector<double> *fPFPTrackLength;
+  std::vector<double> *fPFPTrackStartX;
+  std::vector<double> *fPFPTrackStartY;
+  std::vector<double> *fPFPTrackStartZ;
+  std::vector<double> *fPFPTrackVertexX;
+  std::vector<double> *fPFPTrackVertexY;
+  std::vector<double> *fPFPTrackVertexZ;
+  std::vector<double> *fPFPTrackEndX;
+  std::vector<double> *fPFPTrackEndY;
+  std::vector<double> *fPFPTrackEndZ;
+  std::vector<double> *fPFPTrackTheta;
+  std::vector<double> *fPFPTrackPhi;
+  std::vector<double> *fPFPTrackZenithAngle;
+  std::vector<double> *fPFPTrackAzimuthAngle;
+  std::vector<double> *fPFPTrackStartDirectionX;
+  std::vector<double> *fPFPTrackStartDirectionY;
+  std::vector<double> *fPFPTrackStartDirectionZ;
+  std::vector<double> *fPFPTrackVertexDirectionX;
+  std::vector<double> *fPFPTrackVertexDirectionY;
+  std::vector<double> *fPFPTrackVertexDirectionZ;
+  std::vector<double> *fPFPTrackEndDirectionX;
+  std::vector<double> *fPFPTrackEndDirectionY;
+  std::vector<double> *fPFPTrackEndDirectionZ;
+  std::vector<float> *fPFPTrackChi2;
+  std::vector<int> *fPFPTrackNdof;
+
+  std::vector<int>    *fPFPShowerID;
+  std::vector<int>    *fPFPShowerBestPlane;
+  std::vector<double> *fPFPShowerDirectionX;
+  std::vector<double> *fPFPShowerDirectionY;
+  std::vector<double> *fPFPShowerDirectionZ;
+  std::vector<double> *fPFPShowerDirectionErrX;
+  std::vector<double> *fPFPShowerDirectionErrY;
+  std::vector<double> *fPFPShowerDirectionErrZ;
+  std::vector<double> *fPFPShowerStartX;
+  std::vector<double> *fPFPShowerStartY;
+  std::vector<double> *fPFPShowerStartZ;
+  std::vector<double> *fPFPShowerStartErrX;
+  std::vector<double> *fPFPShowerStartErrY;
+  std::vector<double> *fPFPShowerStartErrZ;
+  std::vector<std::vector<double>> *fPFPShowerEnergy;		//A value per shower per plane!
+  std::vector<std::vector<double>> *fPFPShowerEnergyErr;
+  std::vector<std::vector<double>> *fPFPShowerMIPEnergy;
+  std::vector<std::vector<double>> *fPFPShowerMIPEnergyErr;
+  std::vector<double> *fPFPShowerLength;
+  std::vector<double> *fPFPShowerOpenAngle;
+  std::vector<std::vector<double>> *fPFPShowerdEdx;
+  std::vector<std::vector<double>> *fPFPShowerdEdxErr;
+
   std::string fTruthLabel;
   std::string fTrackLabel;
-  //std::string fClusterLabel;
-  //std::string fCalorimetryLabel;
+  std::string fShowerLabel;
   std::string fPFParticleLabel;
 
   const geo::Geometry* fGeom;
-  //protoana::ProtoDUNETrackUtils trackUtil;
 };
 
 
 test::pandoraAnalysis::pandoraAnalysis(fhicl::ParameterSet const& p)
-  : EDAnalyzer{p} ,
-    fNMCParticles(nullptr),
-    fNPFParticles(nullptr),	
-    fPFPIsPrimary(nullptr),
+  : EDAnalyzer{p},
     fMCIsPrimary(nullptr),
     fMCParticlePdgCode(nullptr),
-    fPFPPdgCode(nullptr),
-    fPFPNDaughters(nullptr),
-    fPFPParentID(nullptr),
     fMCParticleTrueEnergy(nullptr),
     fMCParticleTrackID(nullptr),
     fMCParticleMotherTrackID(nullptr),
     fMCParticleStartProcess(nullptr),
     fMCParticleEndProcess(nullptr),
     fMCParticleNTrajectoryPoint(nullptr),
+    fPFPIsPrimary(nullptr),
+    fPFPParentID(nullptr),
+    fPFPPdgCode(nullptr),
+    fPFPNDaughters(nullptr),
     fPFPNClusters(nullptr),
     fPFPNTracks(nullptr),
     fPFPCluPlane(nullptr),
     fPFPCluView(nullptr),
     fPFPCluNHits(nullptr),
     fPFPCluIntegral(nullptr),
+    fPFPTrackID(nullptr),
     fPFPTrackLength(nullptr),
     fPFPTrackStartX(nullptr),
     fPFPTrackStartY(nullptr),
     fPFPTrackStartZ(nullptr),
+    fPFPTrackVertexX(nullptr),
+    fPFPTrackVertexY(nullptr),
+    fPFPTrackVertexZ(nullptr),
     fPFPTrackEndX(nullptr),
     fPFPTrackEndY(nullptr),
     fPFPTrackEndZ(nullptr),
-    fPFPTrackID(nullptr)
+    fPFPTrackTheta(nullptr),
+    fPFPTrackPhi(nullptr),
+    fPFPTrackZenithAngle(nullptr),
+    fPFPTrackAzimuthAngle(nullptr),
+    fPFPTrackStartDirectionX(nullptr),
+    fPFPTrackStartDirectionY(nullptr),
+    fPFPTrackStartDirectionZ(nullptr),
+    fPFPTrackVertexDirectionX(nullptr),
+    fPFPTrackVertexDirectionY(nullptr),
+    fPFPTrackVertexDirectionZ(nullptr),
+    fPFPTrackEndDirectionX(nullptr),
+    fPFPTrackEndDirectionY(nullptr),
+    fPFPTrackEndDirectionZ(nullptr),
+    fPFPTrackChi2(nullptr),
+    fPFPTrackNdof(nullptr),
+    fPFPShowerID(nullptr),
+    fPFPShowerDirectionX(nullptr),
+    fPFPShowerDirectionY(nullptr),
+    fPFPShowerDirectionZ(nullptr),
+    fPFPShowerDirectionErrX(nullptr),
+    fPFPShowerDirectionErrY(nullptr),
+    fPFPShowerDirectionErrZ(nullptr),
+    fPFPShowerStartX(nullptr),
+    fPFPShowerStartY(nullptr),
+    fPFPShowerStartZ(nullptr),
+    fPFPShowerStartErrX(nullptr),
+    fPFPShowerStartErrY(nullptr),
+    fPFPShowerStartErrZ(nullptr),
+    fPFPShowerEnergy(nullptr),      //An energy value per shower per plane
+    fPFPShowerEnergyErr(nullptr),
+    fPFPShowerMIPEnergy(nullptr),
+    fPFPShowerMIPEnergyErr(nullptr),
+    fPFPShowerLength(nullptr),
+    fPFPShowerOpenAngle(nullptr),
+    fPFPShowerdEdx(nullptr),
+    fPFPShowerdEdxErr(nullptr)
+
     //fTrackdEdx(nullptr),
     //fTrackResidualRange(nullptr)
   // More initializers here.
 {
-  // Call appropriate consumes<>() for any products to be retrieved by this module.
   fTruthLabel = p.get<std::string>("TruthLabel");
   fPFParticleLabel = p.get<std::string>("PFParticleLabel");
   fTrackLabel = p.get<std::string>("TrackLabel");
-  /*fCalorimetryLabel = p.get<std::string>("CalorimetryLabel");
-  fClusterLabel = p.get<std::string>("ClusterLabel");*/
+  fShowerLabel = p.get<std::string>("ShowerLabel");
   fGeom    = &*art::ServiceHandle<geo::Geometry>();
-  /*for(int iplane=0; iplane<3; iplane ++){
-    fTrackHitsTPCs.at(iplane)->clear();
-  }*/
 }
 
 void test::pandoraAnalysis::analyze(art::Event const& e)
@@ -199,7 +273,6 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   fPFPTrackID->clear();
   
   //Access the truth information
-  //std::cout << "e.isRealData = " << e.isRealData() << std::endl;
   if(!e.isRealData()){
     art::ValidHandle<std::vector<simb::MCParticle>> mcParticles = e.getValidHandle<std::vector<simb::MCParticle>>(fTruthLabel);
     if(mcParticles.isValid()){
@@ -221,153 +294,119 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   }
 
   //Access the PFParticles from Pandora
-  art::Handle<std::vector<recob::PFParticle>> pfparticleHandle;
-  std::vector<art::Ptr<recob::PFParticle>> pfparticleVect;
-  if (e.getByLabel(fPFParticleLabel,pfparticleHandle)) //make sure the handle is valid
-    art::fill_ptr_vector(pfparticleVect,pfparticleHandle); //fill the vector with art::Ptr PFParticles
-  //if(!pfparticleVect.size()) return;
+  const std::vector<art::Ptr<recob::PFParticle>> pfparticleVect = dune_ana::DUNEAnaEventUtils::GetPFParticles(e,fPFParticleLabel);
   fNPFParticles = pfparticleVect.size();
+  if(!fNPFParticles) {
+    std::cout << "No PFParticles found!" << std::endl;
+    return;
+  }
 
   //Access the Clusters
   art::Handle<std::vector<recob::Cluster>> clusterHandle;
   std::vector<art::Ptr<recob::Cluster>> clusterVect;
-  if (e.getByLabel(fPFParticleLabel,clusterHandle)) //make sure the handle is valid
-    art::fill_ptr_vector(clusterVect,clusterHandle); //fill the vector
+  if (e.getByLabel(fPFParticleLabel,clusterHandle))
+    art::fill_ptr_vector(clusterVect,clusterHandle);
   art::FindManyP<recob::Cluster> clusterAssoc(pfparticleVect, e, fPFParticleLabel);
-
-  //Access the Tracks from pandoraTrack
-  art::Handle<std::vector<recob::Track>> trackHandle;
-  std::vector<art::Ptr<recob::Track>> trackVect;
-  //fTree->Branch("parentID",&fPFPParentID);
-  if (e.getByLabel(fTrackLabel,trackHandle)) //make sure the handle is valid
-    art::fill_ptr_vector(trackVect,trackHandle); //fill the vector with art::Ptr PFParticles
-  art::FindManyP<recob::Track> trackAssoc(pfparticleVect, e, fTrackLabel);
 
   //Access the hits from pandora
   art::Handle<std::vector<recob::Hit>> hitHandle;
   std::vector<art::Ptr<recob::Hit>> hitVect;
-  if (e.getByLabel(fPFParticleLabel,hitHandle)) //make sure the handle is valid
-    art::fill_ptr_vector(hitVect,hitHandle); //fill the vector with art::Ptr PFParticles
+  if (e.getByLabel(fPFParticleLabel,hitHandle)) 
+    art::fill_ptr_vector(hitVect,hitHandle); 
   //Hits from tracks:
-  art::FindManyP<recob::Hit> trackHitAssoc(trackVect, e, fTrackLabel);
+  //art::FindManyP<recob::Hit> trackHitAssoc(trackVect, e, fTrackLabel);
   
 
-  //art::FindManyP<anab::Calorimetry> calorimetryAssoc(trackVect, e, fCalorimetryLabel);
   std::vector<int> pfpCluPlane, pfpCluView, pfpCluNHits;
   std::vector<double> pfpCluIntegral;
-  std::vector<float> pfpTrackLenght, pfpTrackStartX, pfpTrackStartY, pfpTrackStartZ, pfpTrackEndX, pfpTrackEndY, pfpTrackEndZ;
   std::vector<int> pfpTrackID;
 
-//std::cout << "debug6" << std::endl;
   int iPfp(0);
   for(const art::Ptr<recob::PFParticle> &pfp: pfparticleVect){
-    //std::cout <<"----------------------------------->iPfp = " << iPfp << std::endl;
     iPfp++;
     fPFPIsPrimary->push_back(pfp->IsPrimary());
     fPFPPdgCode->push_back(pfp->PdgCode());
     fPFPNDaughters->push_back(pfp->NumDaughters());
     (pfp->IsPrimary())? fPFPParentID->push_back(-1) : fPFPParentID->push_back(pfp->Parent());
-    //(pfp->IsPrimary())? fPFPParentID->push_back(-1) : fPFPParentID->push_back(-2);
-    //fPFPParentID->push_back(-1);
-    //std::cout << "self = " << pfp->Self() << std::endl;
-    //std::cout << "isprimary? " << fPFPIsPrimary->back() << std::endl;
-    //if(!(pfp->IsPrimary() && (std::abs(pfp->GetPdgCode())==14 || std::abs(pfp->GetPdgCode())==12))) continue;
-    //if(!(pfp->IsPrimary())) continue;
-    //fNPrimaries++;
 
     std::vector<art::Ptr<recob::Cluster>> pfpClusters = clusterAssoc.at(pfp.key());    
     fPFPNClusters->push_back(pfpClusters.size());
     if(!pfpClusters.empty()){
       int iClu(0);
       for(const art::Ptr<recob::Cluster> &clu:pfpClusters){
-       //std::cout << "iClu = " << iClu <<" view = " << clu->View() << " plane = " << clu->Plane().asPlaneID().toString() << " tpc: " << clu->Plane().asTPCID().toString()<< " cryostat: " << clu->Plane().asCryostatID().toString() <<  " width = " << clu->Width() << std::endl; 
-        //std::cout << "start charge: " << clu->StartCharge() << " angle: " << clu->StartAngle() << " opening angle: " << clu->StartOpeningAngle() << std::endl;
-        //std::cout << "end charge: " << clu->EndCharge() << " angle: " << clu->EndAngle() << " opening angle: " << clu->EndOpeningAngle() << std::endl;
-        //std::cout << "integral: " << clu->Integral() << " integral std dev: " << clu->IntegralStdDev() << " integral average: " << clu->IntegralAverage() << std::endl;
-        //std::cout << "nhits: " << clu->NHits() << std::endl;
-        //pfpCluPlane.push_back(clu->Plane().toString());
 	pfpCluView.push_back(clu->View());
         pfpCluNHits.push_back(clu->NHits());
 	pfpCluIntegral.push_back(clu->Integral());
         iClu++;
-
       }
     }
 
-
-    std::vector<art::Ptr<recob::Track>> pfpTracks = trackAssoc.at(pfp.key());    
-    fPFPNTracks->push_back(pfpTracks.size());
-    std::cout << "tracks size = " << pfpTracks.size() << std::endl;
-    std::vector<unsigned int> trkTrackHitsTPCs_Plane0,trkTrackHitsTPCs_Plane1,trkTrackHitsTPCs_Plane2;
-    if(!pfpTracks.empty()){
-      int iTrk(0);
-      for(const art::Ptr<recob::Track> &trk:pfpTracks){
-        //std::cout << "iTrk = " << iTrk << " fPFPTrackLength size = " << fPFPTrackLength->size() << std::endl;
-        std::cout << "--------------new track------------------" << std::endl;
-	iTrk++;
-        pfpTrackLenght.push_back(trk->Length());
-        pfpTrackStartX.push_back(trk->Start().X());
-        pfpTrackStartY.push_back(trk->Start().Y());
-        pfpTrackStartZ.push_back(trk->Start().Z());
-        pfpTrackEndX.push_back(trk->End().X());
-        pfpTrackEndY.push_back(trk->End().Y());
-        pfpTrackEndZ.push_back(trk->End().Z());
-        pfpTrackID.push_back(trk->ID());
-	//fPFPTrackLengthHist->Fill(trk->Length());
-
-        /*std::vector<art::Ptr<recob::Hit>> trackHits = trackHitAssoc.at(trk.key());
-        if(!trackHits.empty()){
-          int iTrkHit(0);
-          //std::cout << "Track n. " << iTrk << " has NHits = " << trackHits.size() << std::endl;
-          for(const art::Ptr<recob::Hit> &trkHit:trackHits){
-            
-            //std::cout << "iTrkHit = " << iTrkHit << " integral = " << trkHit->Integral() << " view = " << trkHit->View()<< std::endl; 
-            iTrkHit++;
-      
-          }
-        } */
-
-		
-
-        //std::vector<art::Ptr<anab::Calorimetry>> trackCalo = calorimetryAssoc.at(trk.key());
-        //for(const art::Ptr<anab::Calorimetry> &cal:trackCalo){
-	  //if(!cal->PlaneID().isValid) continue;	
-	  //int planenum = cal->PlaneID().Plane;
-	  //if(planenum!=2)continue;
-	  //fTrackdEdx->push_back(cal->dEdx());
-	  //fTrackResidualRange->push_back(cal->ResidualRange());
-        //}
-      }
+    art::Ptr<recob::Track> track = dune_ana::DUNEAnaPFParticleUtils::GetTrack(pfp,e,fPFParticleLabel, fTrackLabel); 
+    if(track){
+      fPFPTrackID->push_back(track->ID());
+      fPFPTrackLength->push_back(track->Length());
+      fPFPTrackStartX->push_back(track->Start().X());
+      fPFPTrackStartY->push_back(track->Start().Y());
+      fPFPTrackStartZ->push_back(track->Start().Z());
+      fPFPTrackVertexX->push_back(track->Vertex().X());
+      fPFPTrackVertexY->push_back(track->Vertex().Y());
+      fPFPTrackVertexZ->push_back(track->Vertex().Z());
+      fPFPTrackEndX->push_back(track->End().X());
+      fPFPTrackEndY->push_back(track->End().Y());
+      fPFPTrackEndZ->push_back(track->End().Z());
+      fPFPTrackTheta->push_back(track->Theta());
+      fPFPTrackPhi->push_back(track->Phi());
+      fPFPTrackZenithAngle->push_back(track->ZenithAngle());
+      fPFPTrackAzimuthAngle->push_back(track->AzimuthAngle());
+      fPFPTrackStartDirectionX->push_back(track->StartDirection().X());
+      fPFPTrackStartDirectionY->push_back(track->StartDirection().Y());
+      fPFPTrackStartDirectionZ->push_back(track->StartDirection().Z());
+      fPFPTrackVertexDirectionX->push_back(track->VertexDirection().X());
+      fPFPTrackVertexDirectionY->push_back(track->VertexDirection().Y());
+      fPFPTrackVertexDirectionZ->push_back(track->VertexDirection().Z());
+      fPFPTrackEndDirectionX->push_back(track->EndDirection().X());
+      fPFPTrackEndDirectionY->push_back(track->EndDirection().Y());
+      fPFPTrackEndDirectionZ->push_back(track->EndDirection().Z());
+      fPFPTrackChi2->push_back(track->Chi2());
+      fPFPTrackNdof->push_back(track->Ndof());
     }
 
+    art::Ptr<recob::Shower> shower = dune_ana::DUNEAnaPFParticleUtils::GetShower(pfp,e,fPFParticleLabel, fShowerLabel); 
+    if(shower){
+      fPFPShowerID->push_back(shower->ID());
+      fPFPShowerBestPlane->push_back(shower->best_plane());
+      fPFPShowerDirectionX->push_back(shower->Direction().X());
+      fPFPShowerDirectionY->push_back(shower->Direction().Y());
+      fPFPShowerDirectionZ->push_back(shower->Direction().Z());
+      fPFPShowerDirectionErrX->push_back(shower->DirectionErr().X());
+      fPFPShowerDirectionErrY->push_back(shower->DirectionErr().Y());
+      fPFPShowerDirectionErrZ->push_back(shower->DirectionErr().Z());
+      fPFPShowerStartX->push_back(shower->ShowerStart().X());
+      fPFPShowerStartY->push_back(shower->ShowerStart().Y());
+      fPFPShowerStartZ->push_back(shower->ShowerStart().Z());
+      fPFPShowerStartErrX->push_back(shower->ShowerStartErr().X());
+      fPFPShowerStartErrY->push_back(shower->ShowerStartErr().Y());
+      fPFPShowerStartErrZ->push_back(shower->ShowerStartErr().Z());
+      fPFPShowerEnergy->push_back(shower->Energy());
+      fPFPShowerEnergyErr->push_back(shower->EnergyErr());
+      fPFPShowerMIPEnergy->push_back(shower->MIPEnergy());
+      fPFPShowerMIPEnergyErr->push_back(shower->MIPEnergyErr());
+      fPFPShowerLength->push_back(shower->Length());
+      fPFPShowerOpenAngle->push_back(shower->OpenAngle());
+      fPFPShowerdEdx->push_back(shower->dEdx());
+      fPFPShowerdEdxErr->push_back(shower->dEdxErr());
+    }
 
     fPFPCluPlane->push_back(pfpCluPlane);
     fPFPCluView->push_back(pfpCluView);
     fPFPCluNHits->push_back(pfpCluNHits);
     fPFPCluIntegral->push_back(pfpCluIntegral);
-    fPFPTrackLength->push_back(pfpTrackLenght);
-    fPFPTrackStartX->push_back(pfpTrackStartX);
-    fPFPTrackStartY->push_back(pfpTrackStartY);
-    fPFPTrackStartZ->push_back(pfpTrackStartZ);
-    fPFPTrackEndX->push_back(pfpTrackEndX);
-    fPFPTrackEndY->push_back(pfpTrackEndY);
-    fPFPTrackEndZ->push_back(pfpTrackEndZ);
-    fPFPTrackID->push_back(pfpTrackID);
     pfpCluPlane.clear();
     pfpCluView.clear();
     pfpCluNHits.clear();
     pfpCluIntegral.clear();
-    pfpTrackLenght.clear();
-    pfpTrackStartX.clear();
-    pfpTrackStartY.clear();
-    pfpTrackStartZ.clear();
-    pfpTrackEndX.clear();
-    pfpTrackEndY.clear();
-    pfpTrackEndZ.clear();
   }
 
-  //fNPrimaryDaughters = pfp->NumDaughters();
-  //std::cout << "ID = " << neutrinoID <<std::endl;  
   fTree->Fill();
 }
 
@@ -393,8 +432,8 @@ void test::pandoraAnalysis::beginJob()
   fTree->Branch("mcParticleNTrajectoryPoints",&fMCParticleNTrajectoryPoint);
   fTree->Branch("mcParticleStartPosition",&fMCParticleStartPosition);
   fTree->Branch("mcParticleStartMomentum",&fMCParticleStartMomentum);
-  fTree->Branch("mcParticleEndPosition",&fMCParticleEndPosition)
-  fTree->Branch("mcParticleEndMomentum",&fMCParticleEndMomentum)
+  fTree->Branch("mcParticleEndPosition",&fMCParticleEndPosition);
+  fTree->Branch("mcParticleEndMomentum",&fMCParticleEndMomentum);
 
   //PFP branches
   fTree->Branch("pfpIsPrimary",&fPFPIsPrimary);
