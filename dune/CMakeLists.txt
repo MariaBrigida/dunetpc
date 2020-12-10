@@ -53,6 +53,9 @@ add_subdirectory(APAIO)
 add_subdirectory(ProductFilters)
 add_subdirectory(AnaUtils)
 add_subdirectory(TrackPID)
+add_subdirectory(pandoraAnalysis)
+add_subdirectory(trackMetrics)
+
 
 # Respect the order specified in lar_build, which is:
 #

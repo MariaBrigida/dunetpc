@@ -1,0 +1,28 @@
+#include "trackMetricsConfig.fcl"
+#include "simulationservices_dune.fcl"
+#include "services_dune.fcl"
+
+process_name: trackMetrics
+
+source:
+{
+   module_type:    RootInput
+                   maxEvents : -1
+}
+
+services:
+{
+   TFileService: { fileName: "trackMetrics.root"}
+   ExptGeoHelperInterface:         @local::dune_geometry_helper
+   Geometry:                       @local::protodunedphase_geo
+}
+
+physics:
+{
+   analyzers:
+   {
+      ana:        @local::trackMetrics
+   }
+   path0:         [ ana ]
+   end_paths:     [ path0 ]
+}

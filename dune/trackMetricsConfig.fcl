@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+trackMetrics:
+{
+   module_type:		"trackMetrics"
+   TruthLabel:		"largeant"
+   PFParticleLabel:     "pandora2"
+   TrackLabel:          "pandoraTrack2"
+}
+
+END_PROLOG
