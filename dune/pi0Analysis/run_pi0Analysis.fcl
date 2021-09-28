@@ -1,0 +1,30 @@
+#include "pi0AnalysisConfig.fcl"
+#include "simulationservices_dune.fcl"
+#include "services_dune.fcl"
+
+process_name: Pi0Analysis
+
+source:
+{
+  module_type:	RootInput
+	      	maxEvents:	-1
+}
+
+services:
+{
+   @table::dunefd_simulation_services
+   TFileService: { fileName: "pi0AnalysisOutput.root"}
+   #ExptGeoHelperInterface:         @local::dune_geometry_helper
+   #Geometry: @local::dune10kt_1x2x6_refactored_geo
+
+}
+
+physics:
+{
+   analyzers:
+   {
+      ana:	@local::pi0Analysis
+   }
+   path0:	[ ana ]
+   end_paths:	[ path0 ]
+}

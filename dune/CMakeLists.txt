@@ -54,6 +54,7 @@ add_subdirectory(ProductFilters)
 add_subdirectory(AnaUtils)
 add_subdirectory(TrackPID)
 add_subdirectory(PandoraAnalysis)
+add_subdirectory(pi0Analysis)
 add_subdirectory(InfillChannels)
 add_subdirectory(VLNets)
 
