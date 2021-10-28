@@ -43,18 +43,18 @@ int main(int argc, char **argv)
   // when using this program in test mode, turn testmainchans on.  Looks for duplicates and
   // looks up all the channels we put in
   
-  const bool testmainchans = true;
+  const bool testmainchans = false;
 
   // when running in add Disconnected chans mode, turn this switch on.  Will print out an addition
   // to the map corresponding to the disconnected channels
   
-  const bool addDisconnectedChans = false;
+  const bool addDisconnectedChans = true;
   const int disconnectedChanOffset = 0; // 3456;
   std::vector<int> wibvec{0,1,1,1,1,2,2,2,2,3,3,3,3,4,4};
   std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,1,2,3,4,1,2};
 
-  //std::string fullname("vdcbce_chanmap_v1.txt");
-  std::string fullname("vdcbce_chanmap_v1_dcchan0.txt");
+  std::string fullname("vdcbce_chanmap_v1.txt");
+  //std::string fullname("vdcbce_chanmap_v1_dcchan0.txt");
   std::ifstream inFile(fullname, std::ios::in);
   std::string line;
   int numchans = 0;
