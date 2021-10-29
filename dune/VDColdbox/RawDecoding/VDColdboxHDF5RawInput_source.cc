@@ -20,6 +20,7 @@ raw::VDColdboxHDF5RawInputDetail::VDColdboxHDF5RawInputDetail(
     art::ProductRegistryHelper & rh,
     art::SourceHelper const & sh) 
   : pretend_module_name(ps.get<std::string>("raw_data_label", "daq")),
+    fLogLevel(ps.get<int>("LogLevel", 0)),
     pmaker(sh) {
   rh.reconstitutes<raw::DUNEHDF5FileInfo, art::InEvent>(pretend_module_name); 
   rh.reconstitutes<raw::RDTimeStamp, art::InEvent>(pretend_module_name, "trigger");
@@ -71,7 +72,7 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   }
 
 
-  size_t run_id = -1; //runNumber can be 0,
+  size_t run_id = 999; //runNumber can be 0,
                       //but this seems like an issue
                       //with art
 
@@ -83,22 +84,24 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   dune::VDColdboxHDF5Utils::HeaderInfo header_info;
   std::string det_type = "TriggerRecordHeader";
   dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, header_info);
-  std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
-               std::dec << std::endl;
-  std::cout << "   Version: " << std::dec << header_info.version <<
-               std::dec << std::endl;
-  std::cout << "   Trig Num: " << std::dec << header_info.trigNum <<
-               std::dec << std::endl;
-  std::cout << "   Trig Timestamp: " << std::dec <<
-               header_info.trigTimestamp << std::dec << std::endl;
-  std::cout << "   No. of requested components:   " << std::dec <<
-               header_info.nReq << std::dec << std::endl;
-  std::cout << "   Run Number: " << std::dec << header_info.runNum <<
-               std::endl;
-  std::cout << "   Error bits: " << std::dec << header_info.errBits <<
-               std::endl;
-  std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
-               std::endl;
+  if (fLogLevel > 0) {
+    std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
+                 std::dec << std::endl;
+    std::cout << "   Version: " << std::dec << header_info.version <<
+                 std::dec << std::endl;
+    std::cout << "   Trig Num: " << std::dec << header_info.trigNum <<
+                 std::dec << std::endl;
+    std::cout << "   Trig Timestamp: " << std::dec <<
+                 header_info.trigTimestamp << std::dec << std::endl;
+    std::cout << "   No. of requested components:   " << std::dec <<
+                 header_info.nReq << std::dec << std::endl;
+    std::cout << "   Run Number: " << std::dec << header_info.runNum <<
+                 std::endl;
+    std::cout << "   Error bits: " << std::dec << header_info.errBits <<
+                 std::endl;
+    std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
+                 std::endl;
+  }
 
   run_id = header_info.runNum;
   std::unique_ptr<raw::RDTimeStamp> rd_timestamp(

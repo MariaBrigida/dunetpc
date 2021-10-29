@@ -107,17 +107,17 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   if (rdr > 0 || narray == 0) narray++;
   char *ds_data = new char[narray];
   /*herr_t ecode = */H5Dread(datasetid, H5T_STD_I8LE, H5S_ALL, H5S_ALL,
-                         H5P_DEFAULT, ds_data);
+                             H5P_DEFAULT, ds_data);
+  /*
   int firstbyte = ds_data[0];
   firstbyte &= 0xFF;
   int lastbyte = ds_data[narray-1];
-  lastbyte &= 0xFF;
+  lastbyte &= 0xFF;*/
   //std::cout << std::hex << "      Retrieved data: ecode: " << ecode <<
                //"  first byte: " << firstbyte << " last byte: " <<
                //lastbyte << std::dec << std::endl;
   H5Dclose(datasetid);
-  
-  
+
   //int magic_word = 0;
   memcpy(&info.magicWord, &ds_data[0],4);
   //std::cout << "   Magic word: 0x" << std::hex << info.magicWord << std::dec <<
@@ -125,6 +125,7 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   
   //int version = 0;
   memcpy(&info.version, &ds_data[4],4);
+  std::cout << info.version << std::endl;
   //std::cout << "   Version: " << std::dec << info.version << std::dec <<
                //std::endl;
   
@@ -156,7 +157,7 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   memcpy(&info.triggerType, &ds_data[40], 2);
   //std::cout << "   Trigger type: " << std::dec << info.triggerType << std::endl;
   
-  delete[] ds_data;  // free up memory
+  //delete[] ds_data;  // free up memory
 } 
 
 void getFragmentsForEvent(
@@ -164,7 +165,6 @@ void getFragmentsForEvent(
     RawDigits& raw_digits, RDTimeStamps &timestamps) {
   art::ServiceHandle<dune::VDColdboxChannelMapService> channelMap;
 
-  std::cout << "Frag" << std::endl;
   hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
       hdf_file, group_name);
 
@@ -172,19 +172,16 @@ void getFragmentsForEvent(
       = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
   for (const auto & det : det_types) {
     if (det != "TPC") continue;
-    std::cout << "\t" << det << std::endl;
     hid_t det_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
         the_group, det);
     std::list<std::string> subdet_types
         = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(det_group);
     for (const auto & subdet: subdet_types) {
-      std::cout << "\t\t" << subdet << std::endl;
       hid_t subdet_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
           det_group, subdet);
       std::list<std::string> link_names
           = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(subdet_group);
       for (const auto & t : link_names) {
-        std::cout << "\t\t\t" << t << std::endl;
         
         hid_t dataset = H5Dopen(subdet_group, t.data(), H5P_DEFAULT);
         hsize_t ds_size = H5Dget_storage_size(dataset);
@@ -198,46 +195,26 @@ void getFragmentsForEvent(
         //Each fragment is a collection of WIB Frames
         Fragment frag(
             &ds_data[0], Fragment::BufferAdoptionMode::kReadOnlyMode);
-        std::cout << "Got fragment of size: " << frag.get_size() << std::endl;
 
         size_t n_frames = (ds_size - sizeof(FragmentHeader))/sizeof(WIBFrame);
-        std::cout << "N frames: " << n_frames << std::endl;
 
         std::vector<raw::RawDigit::ADCvector_t> adc_vectors(256);
-        uint32_t crate = 0, slot = 0, fiber = 0;
+        uint32_t /*crate = 0, */slot = 0, fiber = 0;
         for (size_t i = 0; i < n_frames; ++i) {
-          //std::cout << "Frame: " << i << std::endl;
           auto frame = reinterpret_cast<WIBFrame*>(
               static_cast<uint8_t*>(frag.get_data()) + i*sizeof(WIBFrame));
-          //std::cout << *(frame->get_wib_header()) << std::endl;
           for (size_t j = 0; j < adc_vectors.size(); ++j) {
             adc_vectors[j].push_back(frame->get_channel(j));
-            //if (i == 0) {
-            //  crate = frame->get_wib_header()->crate_no;
-            //  slot = frame->get_wib_header()->slot_no;
-            //  fiber = frame->get_wib_header()->fiber_no;
-            //  int offline_chan = channelMap->getOfflChanFromSlotFiberChan(
-            //      slot, fiber, j);
-          
-              //timestamps.push_back(
-              //    raw::RDTimeStamp(frag.get_trigger_timestamp(),
-              //                     offline_chan));
-          
-              //raw_digits.push_back(
-              //    raw::RawDigit(offline_chan, 0,
-              //                  raw::RawDigit::ADCvector_t()));
-            //}
-            //raw_digits[j].ADCs().push_back(frame->get_channel(j));
           }
 
           if (i == 0) {
-            crate = frame->get_wib_header()->crate_no;
+            //crate = frame->get_wib_header()->crate_no;
             slot = frame->get_wib_header()->slot_no;
             fiber = frame->get_wib_header()->fiber_no;
           }
         }
-        std::cout << "Crate, slot, fiber: " << crate << ", " << slot << ", " <<
-                     fiber << std::endl;
+        //std::cout << "Crate, slot, fiber: " << crate << ", " << slot << ", " <<
+        //             fiber << std::endl;
 
         for (size_t iChan = 0; iChan < 256; ++iChan) {
           const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
@@ -248,6 +225,7 @@ void getFragmentsForEvent(
           int offline_chan = channelMap->getOfflChanFromSlotFiberChan(
               slot, fiber, iChan);
           //std::cout << "Offline chan: " << offline_chan << std::endl;
+          if (offline_chan < 0) continue;
 
           raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
           timestamps.push_back(rd_ts);
