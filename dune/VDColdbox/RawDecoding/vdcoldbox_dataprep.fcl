@@ -78,8 +78,20 @@ tools.vdtool: {
   ForceOpen: true
 }
 
+##### 
+tools.channelRanges: {
+  tool_type: VDColdboxChannelRanges
+  LogLevel: 1
+}
+
+tools.channelGroups: {
+  tool_type: VDColdboxChannelGroups
+  LogLevel: 1
+}
 
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
-physics.producers.caldata.ChannelGroups: ["all"]
+physics.producers.caldata.OutputDigitName: "dataprep"
+services.RawDigitPrepService.ToolNames: []
+physics.producers.caldata.ChannelGroups: ["apa1_dcc3456"]
 
