@@ -10,3 +10,6 @@ cet_build_plugin(VDColdboxChannelGroups  art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
+
+
+install_fhicl()

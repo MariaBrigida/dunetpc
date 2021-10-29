@@ -75,5 +75,6 @@ tools.vdtool: {
 
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
+physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.ChannelGroups: ["all"]
 #process_name: DAQ
