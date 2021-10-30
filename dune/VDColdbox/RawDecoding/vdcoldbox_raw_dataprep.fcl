@@ -1,3 +1,4 @@
+#include "vdcoldbox_tools.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "protodune_tools_dune.fcl"
 
@@ -73,7 +74,16 @@ tools.vdtool: {
 }
 
 
+tools.channelRanges: @local::vd_coldbox_channelRanges 
+tools.channelGroups: @local::vd_coldbox_channelGroups 
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
-physics.producers.caldata.ChannelGroups: ["all"]
+physics.producers.caldata.OutputDigitName: "dataprep"
+physics.producers.caldata.OutputWireName: "dataprep"
+physics.producers.caldata.ChannelGroups: ["apa1_dcc3456"]
+services.RawDigitPrepService.ToolNames: [
+  digitReader,            # Unpack the digits acd.raw[] and acd.pedestal
+  adcSampleFiller,        # Fill acd.samples from acd.raw - pedestal
+  adcKeepAllSignalFinder  # Flag all samples as signal, i.e. acd.signal[] = true
+]
 #process_name: DAQ

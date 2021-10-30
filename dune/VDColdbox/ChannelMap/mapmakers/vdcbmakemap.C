@@ -50,26 +50,26 @@ int main(int argc, char **argv)
       int chan = -1;
       if (sp == "U")
 	{
-	  chan = stripidnum + 864 - 1;
+	  chan = stripidnum + 1600 - 1;
 	  if (stripidnum > 256)
 	    {
-	      chan = stripidnum + 2720 - 257;
+	      chan = stripidnum + 1856 - 257;
 	    }
 	}
       else if (sp == "Y")
 	{
-	  chan = stripidnum + 1120 - 1;
+	  chan = stripidnum + 1984 - 1;
 	  if (stripidnum > 320)
 	    {
-	      chan = stripidnum + 2848 - 321;
+	      chan = stripidnum + 2304 - 321;
 	    }
 	}
       else if (sp == "Z")
 	{
-	  chan = stripidnum + 1440 - 1;
+	  chan = stripidnum + 2624 - 1;
 	  if (stripidnum > 288)
 	    {
-	      chan = stripidnum + 2289 - 289;
+	      chan = stripidnum + 2912 - 289;
 	    }
 	}
       if (chan == -1)

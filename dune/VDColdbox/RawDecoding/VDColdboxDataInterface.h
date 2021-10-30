@@ -50,9 +50,10 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
   //For nicer log syntax
   std::string logname = "VDColdboxDataInterface";
-  bool fForceOpen;
   hid_t fPrevStoredHandle = -1;
   hid_t fHDFFile = -1;
+  bool fForceOpen;
+  std::string fFileInfoLabel;
 };
 
 #endif

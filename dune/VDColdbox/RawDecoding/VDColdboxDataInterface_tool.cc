@@ -157,7 +157,8 @@ void readFragmentsForEvent (art::Event &evt)
 // Keep this here for now. This needs scrutiny regarding whether the input labels are fetching right values.
 
 VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
-  : fForceOpen(p.get<bool>("ForceOpen", false)) {
+  : fForceOpen(p.get<bool>("ForceOpen", false)),
+    fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")) {
    
   //_input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
   //  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
@@ -204,16 +205,11 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::cout << i << " ";
   std::cout << std::endl;
 
-  //Turn "daq" --> fcl parameter defined within constructor
-  auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>("daq");
-  //Add check for infoHandle?
-
-  //NOTE: this bit of code is just for testing/demonstration
+  //Turn "daq" --> fcl parameter defined within constructor?
+  auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>(fFileInfoLabel);
   const std::string & event_group = infoHandle->GetEventGroupName();
   const std::string & file_name = infoHandle->GetFileName();
-  std::cout << "\t" << file_name << std::endl;
-  std::cout << "\t" << infoHandle->GetFormatVersion() << std::endl;
-  std::cout << "\t" << event_group << std::endl;
+  
 
   //If the fcl file said to force open the file
   //(i.e. because one is just running DataPrep), then open
@@ -229,55 +225,9 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   }
   fPrevStoredHandle = stored_handle;
 
-  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      fHDFFile, event_group);
-
-
-  std::list<std::string> det_types
-      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
-  std::cout << "\tDet types: " << det_types.size() << std::endl << std::endl;
-  std::string tpc_path = event_group + "/TPC";
-  std::cout << "Attempting to open " << tpc_path << std::endl;
-  hid_t tpc_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      the_group, "TPC");
-  std::list<std::string> subdet_types
-      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(tpc_group);
-  std::cout << "\tSubdet types: " << subdet_types.size() << std::endl <<
-               std::endl;
-  for (const auto & t : subdet_types) {
-    std::cout << "\t" << t << std::endl;
-  }
-
-  hid_t apa_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      tpc_group, "APA000");
-  std::list<std::string> link_names
-      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(apa_group);
-  std::cout << "\tLink types: " << link_names.size() << std::endl <<
-               std::endl;
-  for (const auto & t : link_names) {
-    std::cout << "\t" << t << std::endl;
-  }
-  /////////////////////////////////////////////
-
   dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile, event_group,
                                                  raw_digits, rd_timestamps);
   int totretcode = 0;
-  /*
-  for (size_t i=0; i<apalist.size(); ++i) 
-  { 
-    auto lli = _input_labels_by_apa.find(apalist.at(i)); 
-    if (lli == _input_labels_by_apa.end())
-      {
-	MF_LOG_WARNING("PDSPTPCDataInterface:") << " No list of input labels known for APA " << apalist.at(i) << " Returning no data.";
-      }
-    for (size_t j=0; j<lli->second.size(); ++j)
-      {
-	int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rdstatuses, apalist );
-	if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
-      }
-  }
-*/
- 
 
   //Currently putting in dummy values for the RD Statuses
   rdstatuses.clear();
