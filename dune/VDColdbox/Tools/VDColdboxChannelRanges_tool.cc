@@ -1,49 +1,50 @@
 #include "VDColdboxChannelRanges.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
+using std::string;
+using std::cout;
+using std::endl;
+
 VDColdboxChannelRanges::VDColdboxChannelRanges(fhicl::ParameterSet const& ps)
-  : m_LogLevel(ps.get<int>("LogLevel", 0)) { }
-
-
-//Expects a name of the form "apaX[_dccY]"
-//X can be nonzero, but nothing will be returned
-//
-//_dccY is optional, and governs whether or not 
-//ghost wires are requested, either for starting
-//at 3456 or 0
-IndexRange VDColdboxChannelRanges::get(std::string range_name) const {
-  //The coldbox only has apa/cru0
-  //If other is requested, return nothing
-  if (atoi(&range_name[3]) != 1) {
-    std::cout << "VDColdboxChannelRanges::get: " << range_name <<
-                 " requested. Expect only APA/CRU0" << std::endl;
-    return IndexRange();
+: m_LogLevel(ps.get<int>("LogLevel", 0)),
+  m_GhostRange(ps.get<IndexVector>("GhostRange")),
+  m_glo(0), m_ghi(0) {
+  const string myname = "VDColdboxChannelRanges::ctor: ";
+  if ( m_GhostRange.size() == 2 && m_GhostRange[1] >= m_GhostRange[0] ) {
+    m_glo = m_GhostRange[0];
+    m_ghi = m_GhostRange[1] + 1;
+  } else if ( m_GhostRange.size() ) {
+    cout << myname << "WARNING: " << "Ignoring invalid ghost range." << endl;
   }
-
-  //If ghost channels are requested
-  if (range_name.find("dcc") != std::string::npos) {
-    if (m_LogLevel > 0)
-      std::cout << "VDColdboxChannelRanges::get: " <<
-                   "Returning ghost channels starting at ";
-    //If those channels start at 3456
-    if (range_name.find("3456") != std::string::npos) {
-      if (m_LogLevel > 0)
-        std::cout << "3456" << std::endl;
-      return IndexRange(3456, 3648);
-    }
-    //If they start at 0
-    else {
-      if (m_LogLevel > 0)
-        std::cout << "0" << std::endl;
-      return IndexRange(0, 192);
-    }
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "     LogLevel: " << m_LogLevel << endl;
+    cout << myname << "  Ghost range: [";
+    if ( m_ghi > m_glo ) cout << m_glo << ", " << m_ghi-1;
+    cout << "]" << endl;
   }
+}
 
-  //Return normal range for the coldbox
-  if (m_LogLevel > 0)
-    std::cout << "VDColdboxChannelRanges::get: " <<
-                 "Returning normal range: 1600 to 3200" << std::endl;
-  return IndexRange(1600, 3200);
+
+IndexRange VDColdboxChannelRanges::get(string sran) const {
+  const string myname = "VDColdboxChannelRanges::get: ";
+  const Index nu = 384;
+  const Index ny = 640;
+  const Index ntot = 3200;
+  const Index nhaf = ntot/2;
+  if ( sran == "cru" )  return IndexRange(sran,          0,       ntot, "CRU");
+  if ( sran == "crt" )  return IndexRange(sran,          0,       nhaf, "CRT");
+  if ( sran == "crb" )  return IndexRange(sran,       nhaf,       ntot, "CRB");
+  if ( sran == "crtu" ) return IndexRange(sran,          0,         nu, "CRTu");
+  if ( sran == "crty" ) return IndexRange(sran,         nu,      nu+ny, "CRTy");
+  if ( sran == "crtz" ) return IndexRange(sran,      nu+ny,       nhaf, "CRTz");
+  if ( sran == "crbu" ) return IndexRange(sran,       nhaf,    nhaf+nu, "CRB");
+  if ( sran == "crby" ) return IndexRange(sran,    nhaf+nu, nhaf+nu+ny, "CRBy");
+  if ( sran == "crbz" ) return IndexRange(sran, nhaf+nu+ny,       ntot, "CRBy");
+  if ( sran == "crbg" ) return IndexRange(sran,      m_glo,      m_ghi, "CRBz");
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Invalid channel range name: " << sran << endl;
+  }
+  return IndexRange(0, 0);
 }
 
 DEFINE_ART_CLASS_TOOL(VDColdboxChannelRanges)

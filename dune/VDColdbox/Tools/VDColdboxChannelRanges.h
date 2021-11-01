@@ -1,6 +1,19 @@
 #ifndef VDColdboxChannelRanges_H
 #define VDColdboxChannelRanges_H
 
+// Define channel ranges for the November 2021 vertical drift test in the
+// CERN cold box.
+//
+// cru = all channels
+// crt, crb = bottom and top
+// cr[b,t][u,y,z] for each view, e.g. crbz
+// crbg for the ghost (unused) bottom channels
+//
+// Configuration:
+//   LogLevel: Message level (0, none, 1 init, ...)
+//   GhostRange: [] = no ghosts
+//               [MIN, MAX] means channels MIN, MIN+1, ..., MAX
+
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
@@ -10,13 +23,8 @@ class VDColdboxChannelRanges : public IndexRangeTool {
 
 public:
 
-  /*
-  using Name = std::string;
-  using NameVector = std::vector<Name>;
   using Index = IndexRange::Index;
   using IndexVector = std::vector<Index>;
-  using IndexRangeMap = std::map<Name, IndexRange>;
-  */
 
   // Ctor.
   VDColdboxChannelRanges(fhicl::ParameterSet const& ps);
@@ -31,15 +39,11 @@ private:
 
   // Configuration parameters.
   int m_LogLevel;
-  //IndexVector m_ApaNumbers;
-  //NameVector m_ApaLocationNames;
-  //Name m_ExtraRanges;
+  IndexVector m_GhostRange;
 
-  //IndexRangeMap m_Ranges;
-  //const IndexRangeTool* m_pExtraRanges =nullptr;
-
-  // Add an entry to the range map.
-  //void insertLen(Name nam, Index begin, Index len, Name lab, Name lab1 ="", Name lab2 ="");
+  // Derived parameters.
+  Index m_glo;
+  Index m_ghi;
 
 };
 #endif
