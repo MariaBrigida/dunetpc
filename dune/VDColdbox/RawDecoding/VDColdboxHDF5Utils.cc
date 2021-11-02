@@ -63,7 +63,7 @@ std::list<std::string> getMidLevelGroupNames(hid_t grp) {
     char *memb_name = new char(len+1);
     H5Gget_objname_by_idx(grp, idx, memb_name, len+1 );
     theList.emplace_back(memb_name);
-    delete[] memb_name;
+    delete memb_name;
   }
   return theList;
 }
