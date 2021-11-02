@@ -37,10 +37,10 @@ IndexRange VDColdboxChannelRanges::get(string sran) const {
   if ( sran == "crtu" ) return IndexRange(sran,          0,         nu, "CRTu");
   if ( sran == "crty" ) return IndexRange(sran,         nu,      nu+ny, "CRTy");
   if ( sran == "crtz" ) return IndexRange(sran,      nu+ny,       nhaf, "CRTz");
-  if ( sran == "crbu" ) return IndexRange(sran,       nhaf,    nhaf+nu, "CRB");
+  if ( sran == "crbu" ) return IndexRange(sran,       nhaf,    nhaf+nu, "CRBu");
   if ( sran == "crby" ) return IndexRange(sran,    nhaf+nu, nhaf+nu+ny, "CRBy");
-  if ( sran == "crbz" ) return IndexRange(sran, nhaf+nu+ny,       ntot, "CRBy");
-  if ( sran == "crbg" ) return IndexRange(sran,      m_glo,      m_ghi, "CRBz");
+  if ( sran == "crbz" ) return IndexRange(sran, nhaf+nu+ny,       ntot, "CRBz");
+  if ( sran == "crbg" ) return IndexRange(sran,      m_glo,      m_ghi, "CRBghost");
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Invalid channel range name: " << sran << endl;
   }
