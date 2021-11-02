@@ -21,6 +21,11 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
  public:
 
   VDColdboxDataInterface(fhicl::ParameterSet const& ps);
+  ~VDColdboxDataInterface() {
+    if (fForceOpen) {
+      H5Fclose(fHDFFile);
+    }
+  };
   int retrieveData(art::Event &evt, std::string inputlabel,
                    std::vector<raw::RawDigit> &raw_digits,
                    std::vector<raw::RDTimeStamp> &rd_timestamps,
@@ -54,6 +59,7 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
   hid_t fHDFFile = -1;
   bool fForceOpen;
   std::string fFileInfoLabel;
+
 };
 
 #endif

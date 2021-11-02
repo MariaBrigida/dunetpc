@@ -159,7 +159,6 @@ void readFragmentsForEvent (art::Event &evt)
 VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
   : fForceOpen(p.get<bool>("ForceOpen", false)),
     fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")) {
-   
   //_input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
   //  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
   //  _input_labels_by_apa[3] = p.get< std::vector<std::string> >("APA3InputLabels");
@@ -200,11 +199,10 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   //  if (apalist[0] > 1) return 0;
   //}
 
-  std::cout << "Retrieving Data for " << apalist.size() << " APAs: ";
-  for (const int & i : apalist)
-    std::cout << i << " ";
-  std::cout << std::endl;
-
+  std::cout << "Retrieving Data for " << apalist.size() << " APAs" << std::endl;
+  for (const int & i : apalist) {
+    std::cout << "\t" << i << std::endl;
+  }
   //Turn "daq" --> fcl parameter defined within constructor?
   auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>(fFileInfoLabel);
   const std::string & event_group = infoHandle->GetEventGroupName();
@@ -217,6 +215,11 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   //stored in the event is different
   hid_t stored_handle = infoHandle->GetHDF5FileHandle();
   if (fForceOpen && (stored_handle != fPrevStoredHandle)) {
+    //If we're opening a new file, close the old one
+    //skip for -1, since the file hasn't been opened
+    if (fHDFFile != -1)
+      H5Fclose(fHDFFile);
+
     std::cout << "Opening" << std::endl;
     fHDFFile = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
   }//If the handle is the same, fHDFFile won't change 
