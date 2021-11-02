@@ -39,6 +39,11 @@ services: {
   }
   IFBeam:            {}
   IFDH:              {}
+  ChannelStatusService: {
+    BadChannels: []
+    NoisyChannels: []
+    service_provider: "SimpleChannelStatusService"
+  }
 }
 
 outputs: {
@@ -80,7 +85,7 @@ services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
 physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.OutputWireName: "dataprep"
-physics.producers.caldata.ChannelGroups: ["apa1_dcc3456"]
+physics.producers.caldata.ChannelGroups: ["crb"]
 services.RawDigitPrepService.ToolNames: [
   digitReader,            # Unpack the digits acd.raw[] and acd.pedestal
   adcSampleFiller,        # Fill acd.samples from acd.raw - pedestal
