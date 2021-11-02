@@ -125,7 +125,6 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   
   //int version = 0;
   memcpy(&info.version, &ds_data[4],4);
-  std::cout << info.version << std::endl;
   //std::cout << "   Version: " << std::dec << info.version << std::dec <<
                //std::endl;
   

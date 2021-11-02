@@ -159,15 +159,6 @@ void readFragmentsForEvent (art::Event &evt)
 VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
   : fForceOpen(p.get<bool>("ForceOpen", false)),
     fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")) {
-  //_input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
-  //  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
-  //  _input_labels_by_apa[3] = p.get< std::vector<std::string> >("APA3InputLabels");
-  //  _input_labels_by_apa[4] = p.get< std::vector<std::string> >("APA4InputLabels");
-  //  _input_labels_by_apa[5] = p.get< std::vector<std::string> >("APA5InputLabels");
-  // _input_labels_by_apa[6] = p.get< std::vector<std::string> >("APA6InputLabels");
-  // _input_labels_by_apa[7] = p.get< std::vector<std::string> >("APA7InputLabels");
-  // _input_labels_by_apa[8] = p.get< std::vector<std::string> >("APA8InputLabels");
-  // _input_labels_by_apa[-1] = p.get< std::vector<std::string> >("MISCAPAInputLabels");
 }
 
 
@@ -195,19 +186,9 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::vector<raw::RDStatus> &rdstatuses, 
     std::vector<int> &apalist) {
 
-  //if (apalist.size() > 0) {
-  //  if (apalist[0] > 1) return 0;
-  //}
-
-  std::cout << "Retrieving Data for " << apalist.size() << " APAs" << std::endl;
-  for (const int & i : apalist) {
-    std::cout << "\t" << i << std::endl;
-  }
-  //Turn "daq" --> fcl parameter defined within constructor?
   auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>(fFileInfoLabel);
   const std::string & event_group = infoHandle->GetEventGroupName();
   const std::string & file_name = infoHandle->GetFileName();
-  
 
   //If the fcl file said to force open the file
   //(i.e. because one is just running DataPrep), then open
