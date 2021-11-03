@@ -217,7 +217,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   rdstatuses.clear();
   rdstatuses.emplace_back(false, false, 0);
 
-  std::cout << "trj number of raw digits: " << raw_digits.size() << std::endl;
+  //std::cout << "trj number of raw digits: " << raw_digits.size() << std::endl;
   return totretcode;
 }
 
