@@ -43,13 +43,30 @@ int main(int argc, char **argv)
   // when using this program in test mode, turn testmainchans on.  Looks for duplicates and
   // looks up all the channels we put in
   
-  const bool testmainchans = false;
+  bool testmainchans = false;
 
   // when running in add Disconnected chans mode, turn this switch on.  Will print out an addition
   // to the map corresponding to the disconnected channels
   
-  const bool addDisconnectedChans = true;
-  const int disconnectedChanOffset = 0; // 3456;
+  bool addDisconnectedChans = true;
+  int disconnectedChanOffset = 0; // 3200;
+
+  if (argc > 1)
+    {
+      int iarg = atoi(argv[1]);
+      //std::cout << "Input argument: " << iarg << std::endl;
+      if (iarg > -1)
+	{
+	  addDisconnectedChans = true;
+	  disconnectedChanOffset = iarg;
+	}
+      else
+	{
+	  testmainchans = true;
+	  addDisconnectedChans = false;
+	}
+    }
+  
   std::vector<int> wibvec{0,1,1,1,1,2,2,2,2,3,3,3,3,4,4};
   std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,1,2,3,4,1,2};
 

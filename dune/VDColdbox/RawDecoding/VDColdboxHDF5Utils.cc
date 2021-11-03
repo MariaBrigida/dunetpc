@@ -63,7 +63,7 @@ std::list<std::string> getMidLevelGroupNames(hid_t grp) {
     char *memb_name = new char(len+1);
     H5Gget_objname_by_idx(grp, idx, memb_name, len+1 );
     theList.emplace_back(memb_name);
-    delete[] memb_name;
+    delete memb_name;
   }
   return theList;
 }
@@ -125,7 +125,6 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   
   //int version = 0;
   memcpy(&info.version, &ds_data[4],4);
-  std::cout << info.version << std::endl;
   //std::cout << "   Version: " << std::dec << info.version << std::dec <<
                //std::endl;
   
@@ -213,8 +212,7 @@ void getFragmentsForEvent(
             fiber = frame->get_wib_header()->fiber_no;
           }
         }
-        //std::cout << "Crate, slot, fiber: " << crate << ", " << slot << ", " <<
-        //             fiber << std::endl;
+        //std::cout << "Link name, slot, fiber: " << t.data() << ", " << slot << ", " << fiber << std::endl;
 
         for (size_t iChan = 0; iChan < 256; ++iChan) {
           const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
