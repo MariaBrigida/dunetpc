@@ -212,8 +212,7 @@ void getFragmentsForEvent(
             fiber = frame->get_wib_header()->fiber_no;
           }
         }
-        //std::cout << "Crate, slot, fiber: " << crate << ", " << slot << ", " <<
-        //             fiber << std::endl;
+        //std::cout << "Link name, slot, fiber: " << t.data() << ", " << slot << ", " << fiber << std::endl;
 
         for (size_t iChan = 0; iChan < 256; ++iChan) {
           const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
