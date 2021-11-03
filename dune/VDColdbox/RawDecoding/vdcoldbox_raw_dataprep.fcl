@@ -86,7 +86,7 @@ services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
 physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.OutputWireName: "dataprep"
-physics.producers.caldata.ChannelGroups: ["crb"]
+physics.producers.caldata.ChannelGroups: ["crb", "crbg"]
 services.RawDigitPrepService.ToolNames: [
   digitReader,            # Unpack the digits acd.raw[] and acd.pedestal
   adcSampleFiller,        # Fill acd.samples from acd.raw - pedestal
