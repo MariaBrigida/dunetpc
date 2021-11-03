@@ -34,7 +34,7 @@ services: {
   VDColdboxChannelMapService: {
     #FileName:         "vdcbce_chanmap_v1.txt"
     #FileName: "vdcbce_chanmap_v1_verticalslice.txt"
-    FileName: "vdcbce_chanmap_v1_dcchan3456_verticalslice.txt"
+    FileName: "vdcbce_chanmap_v1_dcchan3200.txt"
     LogLevel:         1
   }
   TFileService: { 

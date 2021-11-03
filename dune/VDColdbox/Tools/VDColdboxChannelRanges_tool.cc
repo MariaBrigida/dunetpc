@@ -33,7 +33,7 @@ IndexRange VDColdboxChannelRanges::get(string sran) const {
   const Index nhaf = ntot/2;
   if ( sran == "cru" )  return IndexRange(sran,          0,       ntot, "CRU");
   if ( sran == "crt" )  return IndexRange(sran,          0,       nhaf, "CRT");
-  if ( sran == "crb" )  return IndexRange(sran,       nhaf,       ntot, "CRB");
+  if ( sran == "crb" )  return IndexRange(sran,       1600,       ntot, "CRB");
   if ( sran == "crtu" ) return IndexRange(sran,          0,         nu, "CRTu");
   if ( sran == "crty" ) return IndexRange(sran,         nu,      nu+ny, "CRTy");
   if ( sran == "crtz" ) return IndexRange(sran,      nu+ny,       nhaf, "CRTz");
