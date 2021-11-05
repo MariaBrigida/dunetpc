@@ -84,6 +84,7 @@ tools.vdtool: {
 #tools.channelGroups: @local::vd_coldbox_channelGroups 
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
+physics.producers.caldata.OnlineChannelMapTool: onlineChannelMapVdcb
 physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.OutputWireName: "dataprep"
 physics.producers.caldata.ChannelGroups: ["crb", "crbg"]

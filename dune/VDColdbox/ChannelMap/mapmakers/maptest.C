@@ -1,6 +1,8 @@
 // Prototype program to try out the VD coldbox channel mapping.  Components to be made
 // into a service
 // compile with clang++ --std=c++17 -o maptest maptest.C
+// takes one argument on the command line:  chan offset -- 3200.  Put in -1 to test channel map,
+// -2 to test specific channels
 
 #include <iostream>
 #include <fstream>
@@ -50,7 +52,8 @@ int main(int argc, char **argv)
   
   bool addDisconnectedChans = true;
   int disconnectedChanOffset = 0; // 3200;
-
+  bool testSpecificChans = false;
+  
   if (argc > 1)
     {
       int iarg = atoi(argv[1]);
@@ -64,11 +67,15 @@ int main(int argc, char **argv)
 	{
 	  testmainchans = true;
 	  addDisconnectedChans = false;
+	  if (iarg < -1)
+	    {
+	      testSpecificChans = true;
+	    }
 	}
     }
   
   std::vector<int> wibvec{0,1,1,1,1,2,2,2,2,3,3,3,3,4,4};
-  std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,1,2,3,4,1,2};
+  std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,2,1,3,4,2,1};
 
   std::string fullname("vdcbce_chanmap_v1.txt");
   //std::string fullname("vdcbce_chanmap_v1_dcchan0.txt");
@@ -107,16 +114,24 @@ int main(int argc, char **argv)
   }
   inFile.close();
   //std::cout << "num chans: " << numchans << std::endl;
+
+
+  if (testSpecificChans)
+    {
+      VDCBChanInfo ciret = getChanInfoFromOfflChan(1671);
+      std::cout << "looked up offline channel 1671: " << ciret.offlchan << " " << ciret.wib << " " << ciret.wibconnector << " " << ciret.cebchan << " " << ciret.femb << " " << ciret.asic << " " << ciret.asicchan << " "  << ciret.connector << " " << ciret.stripid << " " << ciret.valid << std::endl;
+
+      ciret = getChanInfoFromOfflChan(1689);
+      std::cout << "looked up offline channel 1689: " << ciret.offlchan << " " << ciret.wib << " " << ciret.wibconnector << " " << ciret.cebchan << " " << ciret.femb << " " << ciret.asic << " " << ciret.asicchan << " "  << ciret.connector << " " << ciret.stripid << " " << ciret.valid << std::endl;
+
+      int ctest = getOfflChanFromWIBConnectorInfo(3, 3, 4);
+      std::cout << "reverse lookup: " << ctest << std::endl;
+    }
   
   if (testmainchans)
     {
-      //VDCBChanInfo ciret = getChanInfoFromOfflChan(1289);
-      //std::cout << "looked up offline channel 1289: " << ciret.offlchan << " " << ciret.wib << " " << ciret.wibconnector << " " << ciret.cebchan << " " << ciret.femb << " " << ciret.asic << " " << ciret.asicchan << " "  << ciret.connector << " " << ciret.stripid << " " << ciret.valid << std::endl;
-
-      //int ctest = getOfflChanFromWIBConnectorInfo(1, 3, 25);
-      //std::cout << "reverse lookup: " << ctest << std::endl;
-
-      //int ctest2 = getOfflChanFromSlotFiberChan(0, 2, 25);
+      
+      //int ctest2 = getOfflChanFromSlotFiberChan(3, 3, 4);
       //std::cout << "reverse lookup2: " << ctest2 << std::endl;
 
       // last channel in the actual detector is 3456.  Have 192 extras, possibly on the end
