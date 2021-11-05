@@ -20,7 +20,7 @@ int main(int argc, char **argv)
   int wibconnector=0;
 
   std::vector<int> wibvec{0,1,1,1,1,2,2,2,2,3,3,3,3,4,4};
-  std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,1,2,3,4,1,2};
+  std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,2,1,3,4,2,1};
   
   while (true)
     {
