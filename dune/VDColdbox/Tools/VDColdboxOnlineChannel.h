@@ -6,9 +6,11 @@
 // Tool that converts a VD coldbox offline channel number
 // to an online index following the FEMB convention:
 //
-//   chanOn = 128*KFMB + 8*KASIC + KACH
+//   chanOn = 128*KFMB + KFCH
+//   KFCH 8*KASIC + KACH
 //
-//  KFMB = FEMB number (0-13)
+//  KFMB = FEMB number (1-14 in VD coldbox 2021)
+//  KFCH = Channel number in the FEMB (0-127)
 //  KASIC = ASCIC number in the FEMB (0-7)
 //  KACH = Channel number in the ASIC (0-15)
 //

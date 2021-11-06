@@ -28,7 +28,7 @@ Index VDColdboxOnlineChannel::get(Index chanOff) const {
   }
   art::ServiceHandle<dune::VDColdboxChannelMapService> pms;
   dune::VDColdboxChannelMapService::VDCBChanInfo info = pms->getChanInfoFromOfflChan(chanOff);
-  return 128*(info.femb-1) + 16*(info.asic-1) + info.asicchan;
+  return 128*(info.femb) + 16*(info.asic-1) + info.asicchan;
 }
 
 //**********************************************************************

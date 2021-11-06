@@ -45,6 +45,7 @@ services: {
     NoisyChannels: []
     service_provider: "SimpleChannelStatusService"
   }
+  Geometry: @local::dunevdcb_geo
 }
 
 outputs: {

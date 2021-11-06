@@ -106,18 +106,21 @@ int test_VDColdboxOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   cout << myname << line << endl;
   cout << myname << "Check each online index appears exactly once." << endl;
   const Index nchaOn = 14*128;
+  const Index ichaOn1 = 128;
+  const Index ichaOn2 = ichaOn1 + nchaOn;
   const Index ichaOff1 = 1600;
   const Index ichaOff2 = ichaOff1 + nchaOn;
-  IndexVector offlineChannel(nchaOn, badIndex);
-  IndexVector onlineCounts(nchaOn, 0);
+  IndexVector offlineChannel(ichaOn2, badIndex);
+  IndexVector onlineCounts(ichaOn2, 0);
   Index ndup = 0;
   for ( Index ichaOff=ichaOff1; ichaOff<ichaOff2; ++ichaOff ) {
     Index ichaOn = cma->get(ichaOff);
-    if ( nshow*(ichaOff/nshow) == ichaOff || ichaOn >= nchaOn ) {
+    if ( nshow*(ichaOff/nshow) == ichaOff ) {
       cout <<  myname << " " << setw(4) << ichaOff << " --> " << setw(4) << ichaOn
            << " (" << sonline(ichaOn) << ")" << endl;
     }
-    assert( ichaOn < nchaOn );
+    assert( ichaOn >= ichaOn1 );
+    assert( ichaOn < ichaOn2 );
     if ( offlineChannel[ichaOn] != badIndex ) {
       cout << myname << "ERROR: Online channel " << setw(4) << ichaOn
            << " (" << sonline(ichaOn) << ")"
@@ -131,7 +134,7 @@ int test_VDColdboxOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   }
   Index nbadOn = 0;
   Index nbadOff = 0;
-  for ( Index ichaOn=0; ichaOn<nchaOn; ++ichaOn ) {
+  for ( Index ichaOn=ichaOn1; ichaOn<ichaOn2; ++ichaOn ) {
     if ( onlineCounts[ichaOn] != 1 ) {
       cout << "ERROR: Map count for online channel " << ichaOn << " is " << onlineCounts[ichaOn] << endl;;
       ++nbadOn;
