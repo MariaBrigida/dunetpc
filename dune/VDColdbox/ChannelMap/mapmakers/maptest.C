@@ -77,6 +77,21 @@ int main(int argc, char **argv)
   std::vector<int> wibvec{0,1,1,1,1,2,2,2,2,3,3,3,3,4,4};
   std::vector<int> wibconnectorvec{0,1,2,3,4,1,2,3,4,2,1,3,4,2,1};
 
+  // Implementation of the FELIX channel map: FEMB channel (chipNo & chipChannel) to FELIX fragment channel index.  The second 128 channels in the frame
+  // have the same behavior but are offset by 128
+  // This table was gotten from the FELIX channel-ID mode data taken for ProtoDUNE-SP
+  
+  int felixCh[8][16] = {
+    {7, 6, 5, 4, 3, 2, 1, 0, 23, 22, 21, 20, 19, 18, 17, 16},
+    {39, 38, 37, 36, 35, 34, 33, 32, 55, 54, 53, 52, 51, 50, 49, 48},
+    {15, 14, 13, 12, 11, 10, 9, 8, 31, 30, 29, 28, 27, 26, 25, 24},
+    {47, 46, 45, 44, 43, 42, 41, 40, 63, 62, 61, 60, 59, 58, 57, 56},
+    {71, 70, 69, 68, 67, 66, 65, 64, 87, 86, 85, 84, 83, 82, 81, 80},
+    {103, 102, 101, 100, 99, 98, 97, 96, 119, 118, 117, 116, 115, 114, 113, 112},
+    {79, 78, 77, 76, 75, 74, 73, 72, 95, 94, 93, 92, 91, 90, 89, 88},
+    {111, 110, 109, 108, 107, 106, 105, 104, 127, 126, 125, 124, 123, 122, 121, 120}
+  };
+
   std::string fullname("vdcbce_chanmap_v1.txt");
   //std::string fullname("vdcbce_chanmap_v1_dcchan0.txt");
   std::ifstream inFile(fullname, std::ios::in);
@@ -165,12 +180,14 @@ int main(int argc, char **argv)
 	      int iofflchan = getOfflChanFromWIBConnectorInfo(wib,wibconnector,ichan);
 	      int asic = 1 + ichan/16;
 	      int asicchan = ichan % 16;
+	      int streamchannel = ichan;  // felixCh[asic-1][asicchan];  already in stream channel basis
+
 	      int connector = 0;
 	      if (iofflchan < 0)
 		{
 		  std::string stripid="D";
 		  stripid += std::to_string(idc);
-                  std::cout << std::setw(8) << idc+disconnectedChanOffset << " " << std::setw(8) << wib << " " << std::setw(8) << wibconnector << " " << std::setw(8) << ichan << " " << std::setw(8) << ifemb << " " << std::setw(8) << asic << " " << std::setw(8) << asicchan << " " << std::setw(8) << connector << " " << std::setw(8) << stripid << std::endl;
+                  std::cout << std::setw(8) << idc+disconnectedChanOffset << " " << std::setw(8) << wib << " " << std::setw(8) << wibconnector << " " << std::setw(8) << streamchannel << " " << std::setw(8) << ifemb << " " << std::setw(8) << asic << " " << std::setw(8) << asicchan << " " << std::setw(8) << connector << " " << std::setw(8) << stripid << std::endl;
       
 		  ++idc;  // to get ready for the next one
 		}
