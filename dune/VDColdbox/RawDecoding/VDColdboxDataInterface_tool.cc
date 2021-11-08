@@ -155,23 +155,74 @@ void readFragmentsForEvent (art::Event &evt)
 }
 
 // Keep this here for now. This needs scrutiny regarding whether the input labels are fetching right values.
-
 VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
   : fForceOpen(p.get<bool>("ForceOpen", false)),
     fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")) {
 }
 
 
-int VDColdboxDataInterface::retrieveData(
-    art::Event &evt, 
-    std::string inputLabel, 
-    std::vector<raw::RawDigit> &raw_digits, 
-    std::vector<raw::RDTimeStamp> &rd_timestamps,
-    std::vector<raw::RDStatus> &rdstatuses) {
+int VDColdboxDataInterface::retrieveData(art::Event &evt, 
+					 std::string inputLabel, 
+					 std::vector<raw::RawDigit> &raw_digits, 
+					 std::vector<raw::RDTimeStamp> &rd_timestamps,
+					 std::vector<raw::RDStatus> &rdstatuses) {
   return 0;
 }
 
 
+int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
+                                                         std::vector<raw::RawDigit> &raw_digits,
+                                                         std::vector<raw::RDTimeStamp> &rd_timestamps,
+                                                         std::vector<raw::RDStatus> &rdstatuses,
+                                                         std::vector<int> &apalist)
+{
+  auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>(fFileInfoLabel);
+  const std::string & toplevel_groupname = infoHandle->GetEventGroupName();
+  const std::string & file_name = infoHandle->GetFileName();
+  hid_t file_id = infoHandle->GetHDF5FileHandle();
+  
+  std::cout << "HDF5 FileName: " << file_name << std::endl;
+  std::cout << "Top-Level Group Name: " << toplevel_groupname << std::endl;
+  
+  //If the fcl file said to force open the file
+  //(i.e. because one is just running DataPrep), then open
+  //but only if we are on a new file -- identified by if the handle
+  //stored in the event is different
+  if (fForceOpen && (file_id != fPrevStoredHandle))
+    {
+      std::cout << "Opening" << std::endl;
+      fHDFFile = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+    }//If the handle is the same, fHDFFile won't change
+  else if (!fForceOpen)
+    {
+      fHDFFile = file_id;
+    }
+  fPrevStoredHandle = file_id;
+  
+  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(fHDFFile, toplevel_groupname);
+  
+  std::cout << "Retrieving Data for " << apalist.size() << " APA " << std::endl;
+  
+  // NOTE: The "apalist" that DataPrep hands to the method is always of size 1.
+  // Also "apalist" should technically hand you the current APA No. we are looking at but there is exception.
+  // CAUTION: This is only and only for VDColdBox.The reason is VDColdBox has only one APA/CRU.
+  for (const int & i : apalist)
+    {
+      int apano = i;
+      std::cout << "apano: " << i << std::endl;
+
+      dune::VDColdboxHDF5Utils::getFragmentsForEvent(the_group, raw_digits, rd_timestamps, apano);
+      
+      //Currently putting in dummy values for the RD Statuses
+      rdstatuses.clear();
+      rdstatuses.emplace_back(false, false, 0);
+    }
+  
+  return 0;
+}
+
+
+/*
 // TO DO :May be we should CONSIDER using "retrieveTPCData" function from above TO DEFINE "retrieveDataForSpecifiedAPAs" once the hdf5 info are placed in an art root file?? UNDER DISCUSSION.
 
 // get data for specified APAs.  Loop over labels specified in the fcl configuration looking for the data so 
@@ -220,6 +271,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   //std::cout << "trj number of raw digits: " << raw_digits.size() << std::endl;
   return totretcode;
 }
+*/
 
 // get data for a specific label, but only return those raw digits that correspond to APA's on the list
 int VDColdboxDataInterface::retrieveDataAPAListWithLabels(

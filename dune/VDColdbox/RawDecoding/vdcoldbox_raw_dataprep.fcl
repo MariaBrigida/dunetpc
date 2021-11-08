@@ -51,7 +51,7 @@ services: {
 outputs: {
   rootout: {
     module_type: RootOutput
-    fileName: "rawinput_test.root"
+    fileName: "out_raw_dataprep.root"
     dataTier:    "full-reconstructed"
     compressionLevel: 1
   }

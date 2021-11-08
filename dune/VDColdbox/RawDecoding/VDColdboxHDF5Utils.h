@@ -45,7 +45,8 @@ struct HeaderInfo {
 typedef std::unique_ptr<HDFFileInfo> HDFFileInfoPtr;
 HDFFileInfoPtr openFile(const std::string& fileName);
 void closeFile(HDFFileInfoPtr hdfFileInfoPtr);
-std::list<std::string> findTopLevelGroupNames(hid_t fd);
+std::vector<std::string> readMidLevelGroupNames(hid_t grp);
+std::vector<std::string> readTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
 std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
 std::list<std::string> getMidLevelGroupNames(hid_t gid);
 bool attrExists(hid_t object, const std::string& attrname);
@@ -56,6 +57,7 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
 
 typedef std::vector<Fragment> Fragments;
 typedef std::map<std::string, std::unique_ptr<Fragments>> FragmentListsByType;
+ void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano);
 void getFragmentsForEvent(hid_t hdf_file, const std::string & group_name,
                           RawDigits& raw_digits, RDTimeStamps &timestamps);
 void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
