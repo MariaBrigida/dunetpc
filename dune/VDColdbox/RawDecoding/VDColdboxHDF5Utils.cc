@@ -233,7 +233,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
 	    for (size_t iChan = 0; iChan < 256; ++iChan)
               {
                 const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
-		std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() << " Timestamp: " << frag.get_trigger_timestamp() << std::endl;
+		//std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() << " Timestamp: " << frag.get_trigger_timestamp() << std::endl;
 
                 int offline_chan = channelMap->getOfflChanFromSlotFiberChan(slot, fiber, iChan);
                 if (offline_chan < 0) continue;
