@@ -13,7 +13,7 @@
 // card   - AMC card number
 // cardch - AMC card channel number 
 // crp    - CRP number
-// view   - view number (0/1)
+// view   - view number (0/1/2)
 // viewch - view channel number 
 // 
 // Boost multi_index_container provides interface to search and order various 
@@ -50,6 +50,7 @@
 #include "tde_cmap_utils.h"
 
 using dune::tde::ChannelId;
+using std::vector;
 
 // ctor
 dune::VDColdboxTDEChannelMapService::VDColdboxTDEChannelMapService(fhicl::ParameterSet const& p,
@@ -65,7 +66,7 @@ dune::VDColdboxTDEChannelMapService::VDColdboxTDEChannelMapService(fhicl::Parame
   unsigned ncrateInMap = p.get<unsigned>("MapCrateNb", 3);
   unsigned ncardsInMap = p.get<unsigned>("MapCardNb", 10);
   unsigned nviewsInMap = p.get<unsigned>("MapViewNb",  1);
-  fLogLevel            = pset.get<int>("LogLevel", 0);
+  fLogLevel            = p.get<int>("LogLevel", 0);
   //initialize channel map
   initMap( MapName, ncrateInMap, ncardsInMap, nviewsInMap );
 
@@ -100,7 +101,7 @@ void dune::VDColdboxTDEChannelMapService::initMap( std::string mapname, unsigned
 // clearMap 
 void dune::VDColdboxTDEChannelMapService::clearMap()
 {
-  TDEChannelTable().swap( chanTable );
+  tde::ChannelTable().swap( chanTable );
   ncrates_ = 0;
   ncrps_   = 0;
   ntot_    = 0;
@@ -145,7 +146,7 @@ void dune::VDColdboxTDEChannelMapService::add( unsigned seq, unsigned crate, uns
 					      unsigned cch,  unsigned crp, unsigned view, 
 					      unsigned vch, unsigned short state )
 {
-  chanTable.insert( tde::ChannelId(seq, crate, card, cch, crp, view, vch, state) );
+  chanTable.insert( ChannelId(seq, crate, card, cch, crp, view, vch, state) );
   //
   ntot_    = chanTable.size();
 
@@ -159,26 +160,26 @@ void dune::VDColdboxTDEChannelMapService::add( unsigned seq, unsigned crate, uns
 //
 // 
 //
-boost::optional<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_seqn( unsigned seqn ) const
+boost::optional<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_seqn( unsigned seqn ) const
 {
   auto it = chanTable.get<dune::tde::IndexRawSeqnHash>().find( seqn );
-  if( it != chanTable.get<dune::dune::tde::IndexRawSeqnHash>().end() )
+  if( it != chanTable.get<dune::tde::IndexRawSeqnHash>().end() )
     return *it;
   
-  return boost::optional<tde::ChannelId>();
+  return boost::optional<ChannelId>();
 }
 
 //
 // the most low level info
-std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_seqn( unsigned from, unsigned to ) const
+std::vector<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_seqn( unsigned from, unsigned to ) const
 {
   if( to < from ) std::swap( from, to );
   
-  std::vector<tde::ChannelId> res;
+  std::vector<ChannelId> res;
   
   if( from == to )
     {
-      if( boost::optional<tde::ChannelId> id = find_by_seqn( from ) ) 
+      if( boost::optional<ChannelId> id = find_by_seqn( from ) ) 
 	res.push_back( *id );
       //auto it = chanTable.find(from);
       //if( it != chanTable.end() )
@@ -196,95 +197,95 @@ std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_seqn( u
 
 //
 //
-std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate( unsigned crate, bool ordered ) const
+std::vector<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate( unsigned crate, bool ordered ) const
 {
   if( not ordered ) // get from hashed index
     {
       const auto r = chanTable.get<dune::tde::IndexCrate>().equal_range( crate );
-      std::vector<tde::ChannelId> res(r.first, r.second);
+      std::vector<ChannelId> res(r.first, r.second);
       return res;
     }
 
   const auto r = chanTable.get<dune::tde::IndexCrateCardChan>().equal_range( boost::make_tuple(crate) );
-  std::vector<tde::ChannelId> res(r.first, r.second);
+  std::vector<ChannelId> res(r.first, r.second);
 
   return res;
 }
 
 //
 //
-std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate_card( unsigned crate, unsigned card, bool ordered ) const
+std::vector<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate_card( unsigned crate, unsigned card, bool ordered ) const
 {
   if( not ordered ) // get from hashed index
     {
       const auto r = chanTable.get<dune::tde::IndexCrateCard>().equal_range( boost::make_tuple(crate, card) );
-      std::vector<tde::ChannelId> res(r.first, r.second);
+      std::vector<ChannelId> res(r.first, r.second);
       return res;
     }
   
   // ordered accodring to channel number
   const auto r = chanTable.get<dune::tde::IndexCrateCardChan>().equal_range( boost::make_tuple( crate, card) );
-  std::vector<tde::ChannelId> res(r.first, r.second);
+  std::vector<ChannelId> res(r.first, r.second);
   
   return res;
 }
 
 //
 //
-boost::optional<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate_card_chan( unsigned crate,
+boost::optional<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crate_card_chan( unsigned crate,
 								unsigned card, unsigned chan ) const
 {
   auto it = chanTable.get<dune::tde::IndexCrateCardChanHash>().find( boost::make_tuple(crate, card, chan) );
   if( it != chanTable.get<dune::tde::IndexCrateCardChanHash>().end() )
     return *it;
   
-  return boost::optional<tde::ChannelId>();
+  return boost::optional<ChannelId>();
 }
 
 //
 //
-std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp( unsigned crp, bool ordered ) const
+std::vector<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp( unsigned crp, bool ordered ) const
 {
   if( not ordered ) // get from hashed index
     {
       const auto r = chanTable.get<dune::tde::IndexCrp>().equal_range( crp );
-      std::vector<tde::ChannelId> res(r.first, r.second);
+      std::vector<ChannelId> res(r.first, r.second);
       return res;
     }
 
   const auto r = chanTable.get<dune::tde::IndexCrpViewChan>().equal_range( crp );
-  std::vector<tde::ChannelId> res(r.first, r.second);
+  std::vector<ChannelId> res(r.first, r.second);
   //return res;
   return res;
 }
 
 //
 //
-std::vector<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp_view( unsigned crp, unsigned view, bool ordered ) const
+std::vector<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp_view( unsigned crp, unsigned view, bool ordered ) const
 {
   if( not ordered ) // get from hashed index
     {
       const auto r = chanTable.get<dune::tde::IndexCrpView>().equal_range( boost::make_tuple(crp, view) );
-      std::vector<tde::ChannelId> res(r.first, r.second);
+      std::vector<ChannelId> res(r.first, r.second);
       return res;
     }
   
   // ordered accodring to channel number
   const auto r = chanTable.get<dune::tde::IndexCrpViewChan>().equal_range( boost::make_tuple(crp, view) );
-  std::vector<tde::ChannelId> res(r.first, r.second);
+  std::vector<ChannelId> res(r.first, r.second);
   return res;
 }
 
 //
 //
-boost::optional<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp_view_chan( unsigned crp,
+boost::optional<ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp_view_chan( unsigned crp,
 											unsigned view, unsigned chan ) const
 {
   auto it = chanTable.get<dune::tde::IndexCrpViewChanHash>().find( boost::make_tuple(crp, view, chan) );
   if( it != chanTable.get<dune::tde::IndexCrpViewChanHash>().end() )
     return *it;
   
-  return boost::optional<tde::ChannelId>();
+  return boost::optional<ChannelId>();
 }
   
 //
@@ -292,7 +293,7 @@ boost::optional<tde::ChannelId> dune::VDColdboxTDEChannelMapService::find_by_crp
 int dune::VDColdboxTDEChannelMapService::MapToCRP(int seqch, int &crp, int &view, int &chv) const
 {
   crp = view = chv = -1;
-  if( boost::optional<tde::ChannelId> id = find_by_seqn( (unsigned)seqch ) ) 
+  if( boost::optional<ChannelId> id = find_by_seqn( (unsigned)seqch ) ) 
     {
       if( !id->exists() ) return -1;
       crp  = id->crp();
@@ -309,7 +310,7 @@ int dune::VDColdboxTDEChannelMapService::MapToCRP(int seqch, int &crp, int &view
 int dune::VDColdboxTDEChannelMapService::MapToDAQ(int crp, int view, int chv, int &seqch) const
 {
   seqch = -1;
-  if( boost::optional<tde::ChannelId> id = find_by_crp_view_chan( (unsigned)crp, (unsigned)view, (unsigned)chv ) )
+  if( boost::optional<ChannelId> id = find_by_crp_view_chan( (unsigned)crp, (unsigned)view, (unsigned)chv ) )
     {
       if( !id->exists() ) return -1;
       seqch = id->seqn();
@@ -326,7 +327,7 @@ unsigned dune::VDColdboxTDEChannelMapService::ncards( unsigned crate ) const
   unsigned count  = 0;
   auto r = chanTable.get<dune::tde::IndexCrateCardChan>().equal_range( crate );
   ssize_t last    = -1;
-  for( tde::ChannelId const &ch : boost::make_iterator_range( r ) )
+  for( ChannelId const &ch : boost::make_iterator_range( r ) )
     {
       if( !ch.exists() ) continue;
       unsigned val = ch.card();
@@ -348,7 +349,7 @@ unsigned dune::VDColdboxTDEChannelMapService::nviews( unsigned crp ) const
   unsigned count  = 0;
   auto r = chanTable.get<dune::tde::IndexCrpViewChan>().equal_range( crp );
   ssize_t last    = -1;
-  for( tde::ChannelId const &ch : boost::make_iterator_range( r ) )
+  for( ChannelId const &ch : boost::make_iterator_range( r ) )
     {
       if( !ch.exists() ) continue;
       unsigned val = ch.view();
@@ -364,7 +365,7 @@ unsigned dune::VDColdboxTDEChannelMapService::nviews( unsigned crp ) const
 
 //
 //
-void dune::VDColdboxTDEChannelMapService::print( std::vector<tde::ChannelId> &vec )
+void dune::VDColdboxTDEChannelMapService::print( std::vector<ChannelId> &vec )
 {
   for( auto it = vec.begin();it!=vec.end();++it )
     {
