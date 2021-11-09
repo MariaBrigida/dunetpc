@@ -187,7 +187,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
     for (const auto & det : det_types)
       {
         if (det != "TPC") continue;
-	std::cout << "  Detector type:  " << det << std::endl;
+	//std::cout << "  Detector type:  " << det << std::endl;
         hid_t geoGroup = dune::VDColdboxHDF5Utils::getGroupFromPath(the_group, det);
 	std::vector<std::string> apaNames
           = dune::VDColdboxHDF5Utils::readMidLevelGroupNames(geoGroup);
@@ -229,11 +229,11 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
                     fiber = frame->get_wib_header()->fiber_no;
                   }
               }
-	    std::cout << "slot, fiber: "  << slot << ", " << fiber << std::endl;
+	    //std::cout << "slot, fiber: "  << slot << ", " << fiber << std::endl;
 	    for (size_t iChan = 0; iChan < 256; ++iChan)
               {
                 const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
-		std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() << " Timestamp: " << frag.get_trigger_timestamp() << std::endl;
+		//std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() << " Timestamp: " << frag.get_trigger_timestamp() << std::endl;
 
                 int offline_chan = channelMap->getOfflChanFromSlotFiberChan(slot, fiber, iChan);
                 if (offline_chan < 0) continue;
