@@ -1,6 +1,7 @@
 ###include "vdcoldbox_tools.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "protodune_tools_dune.fcl"
+#include "channelstatus_vdcb.fcl"
 #include "vdcb_tools.fcl"
 
 process_name: VDSourcePrep
@@ -40,11 +41,7 @@ services: {
   }
   IFBeam:            {}
   IFDH:              {}
-  ChannelStatusService: {
-    BadChannels: []
-    NoisyChannels: []
-    service_provider: "SimpleChannelStatusService"
-  }
+  ChannelStatusService: @local::data.ChannelStatusService_vdcb1
   Geometry: @local::dunevdcb_geo
 }
 
