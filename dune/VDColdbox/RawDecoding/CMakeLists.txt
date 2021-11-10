@@ -54,6 +54,25 @@ cet_build_plugin(VDColdboxDataInterface   art::tool
                         z
              )
 
+simple_plugin(VDColdboxTDERawInput "source"
+  dune_VDColdbox_ChannelMap_VDColdboxTDEChannelMapService_service 
+  art_Framework_Services_Registry
+  art_utilities
+  canvas
+  cetlib
+  cetlib_except
+  lardataobj_RawData
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
+  ART_PERSISTENCY_PROVENANCE
+  messagefacility::MF_MessageLogger
+  ROOT_BASIC_LIB_LIST
+)
+
 
 cet_build_plugin(VDColdboxPDSDecoder art::module
                  lardataobj_RawData
