@@ -109,7 +109,7 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
 
   // make new run if inR is 0 or if the run has changed
   if (inR == 0 || inR->run() != run_id) {
-    outR = pmaker.makeRunPrincipal(run_id, currentTime);
+    outR = pmaker.makeRunPrincipal(run_id, header_info.trigTimestamp);
   }
 
   // make new subrun if inSR is 0 or if the subrun has changed
@@ -125,7 +125,7 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   auto pos = event_str.begin() + event_str.find(trig);
   event_str.erase(pos, pos + trig.size());
   int event = std::stoi(event_str);
-  outE = pmaker.makeEventPrincipal(run_id, 1, event, currentTime);
+  outE = pmaker.makeEventPrincipal(run_id, 1, event, header_info.trigTimestamp);
 
   
   std::unique_ptr<DUNEHDF5FileInfo> the_info(
