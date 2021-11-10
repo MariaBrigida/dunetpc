@@ -8,6 +8,7 @@ services.RawDrawingOptions.RawDataLabels: ["tpcrawdecoder:daq", "caldata:datapre
 services.RawDrawingOptions.PedestalOption: 1
 services.RawDrawingOptions.MinimumSignal: 5.0
 services.RawDrawingOptions.TotalTicks: 8192
+services.RecoDrawingOptions.WireModuleLabels: [ "caldata:dataprep" ]
 
 services.DetectorPropertiesService.TimeOffsetY: 0
 
