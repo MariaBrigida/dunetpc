@@ -13,7 +13,6 @@
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
-// artdaq and dune-raw-data includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include "dune/VDColdbox/RawDecoding/VDColdboxHDF5Utils.h"

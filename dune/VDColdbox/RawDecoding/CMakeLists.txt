@@ -58,6 +58,7 @@ cet_build_plugin(VDColdboxDataInterface   art::tool
 cet_build_plugin(VDColdboxPDSDecoder art::module
                  lardataobj_RawData
                  lardataobj_RecoBase
+                 VDColdboxHDF5Utils
                  ART_FRAMEWORK_CORE
                  ART_FRAMEWORK_PRINCIPAL
                  ART_FRAMEWORK_SERVICES_REGISTRY
