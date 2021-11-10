@@ -7,5 +7,7 @@ services.ColorDrawingOptions.RawQLow:  [-50]
 services.RawDrawingOptions.RawDataLabels: ["tpcrawdecoder:daq", "caldata:dataprep"]
 services.RawDrawingOptions.PedestalOption: 1
 services.RawDrawingOptions.MinimumSignal: 5.0
+services.RawDrawingOptions.TotalTicks: 8192
 
 services.DetectorPropertiesService.TimeOffsetY: 0
+
