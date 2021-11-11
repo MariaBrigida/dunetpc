@@ -1,7 +1,7 @@
 #ifndef VDColdboxHDF5Utils_h
 #define VDColdboxHDF5Utils_h
 
-#include "artdaq-core/Data/Fragment.hh"
+//#include "artdaq-core/Data/Fragment.hh"
 
 #include <hdf5.h>
 #include <list>
