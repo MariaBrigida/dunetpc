@@ -36,7 +36,7 @@ void readFragmentsForEvent (art::Event &evt)
   // now look inside those "Top-Level Group Name" for "Detector type".
   hid_t requestedGroup = dune::VDColdboxHDF5Utils::getGroupFromPath(file_id, toplevel_groupname);
 
-  std::list<std::string> detectorTypeNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(requestedGroup);
+  std::deque<std::string> detectorTypeNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(requestedGroup);
   
   for (auto& detectorTypeName : detectorTypeNames)
     {
@@ -45,7 +45,7 @@ void readFragmentsForEvent (art::Event &evt)
 	  std::cout << "  Detector type: " << detectorTypeName << std::endl;
 	  std::string geoPath = toplevel_groupname + "/" + detectorTypeName;
 	  hid_t geoGroup = dune::VDColdboxHDF5Utils::getGroupFromPath(file_id,geoPath);
-	  std::list<std::string> apaNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(geoGroup);
+	  std::deque<std::string> apaNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(geoGroup);
 	  
 	  // loop over APAs
 	  for (auto& apaName : apaNames)
@@ -53,7 +53,7 @@ void readFragmentsForEvent (art::Event &evt)
 	      std::string apaGroupPath = geoPath + "/" + apaName;
 	      std::cout << "     Geo path: " << apaGroupPath << std::endl;
 	      hid_t linkGroup = dune::VDColdboxHDF5Utils::getGroupFromPath(file_id,apaGroupPath);
-	      std::list<std::string> linkNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(linkGroup);
+	      std::deque<std::string> linkNames = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(linkGroup);
 	      
 	      // loop over Links
 	      for (auto& linkName : linkNames)
@@ -221,57 +221,6 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
   return 0;
 }
 
-
-/*
-// TO DO :May be we should CONSIDER using "retrieveTPCData" function from above TO DEFINE "retrieveDataForSpecifiedAPAs" once the hdf5 info are placed in an art root file?? UNDER DISCUSSION.
-
-// get data for specified APAs.  Loop over labels specified in the fcl configuration looking for the data so 
-// the caller doesn't have to keep track of all the branch labels an APA's data might be on.
-
-//Fhicl Config. must have to be taken care of in future
-
-int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
-    art::Event &evt, 
-    std::vector<raw::RawDigit> &raw_digits, 
-    std::vector<raw::RDTimeStamp> &rd_timestamps,
-    std::vector<raw::RDStatus> &rdstatuses, 
-    std::vector<int> &apalist) {
-
-  auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>(fFileInfoLabel);
-  const std::string & event_group = infoHandle->GetEventGroupName();
-  const std::string & file_name = infoHandle->GetFileName();
-
-  //If the fcl file said to force open the file
-  //(i.e. because one is just running DataPrep), then open
-  //but only if we are on a new file -- identified by if the handle
-  //stored in the event is different
-  hid_t stored_handle = infoHandle->GetHDF5FileHandle();
-  if (fForceOpen && (stored_handle != fPrevStoredHandle)) {
-    //If we're opening a new file, close the old one
-    //skip for -1, since the file hasn't been opened
-    if (fHDFFile != -1)
-      H5Fclose(fHDFFile);
-
-    std::cout << "Opening" << std::endl;
-    fHDFFile = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
-  }//If the handle is the same, fHDFFile won't change 
-  else if (!fForceOpen) {
-    fHDFFile = stored_handle;
-  }
-  fPrevStoredHandle = stored_handle;
-
-  dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile, event_group,
-                                                 raw_digits, rd_timestamps, fMaxChan);
-  int totretcode = 0;
-
-  //Currently putting in dummy values for the RD Statuses
-  rdstatuses.clear();
-  rdstatuses.emplace_back(false, false, 0);
-
-  //std::cout << "trj number of raw digits: " << raw_digits.size() << std::endl;
-  return totretcode;
-}
-*/
 
 // get data for a specific label, but only return those raw digits that correspond to APA's on the list
 int VDColdboxDataInterface::retrieveDataAPAListWithLabels(

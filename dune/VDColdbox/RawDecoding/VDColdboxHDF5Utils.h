@@ -4,7 +4,7 @@
 //#include "artdaq-core/Data/Fragment.hh"
 
 #include <hdf5.h>
-#include <list>
+#include <deque>
 #include <map>
 #include <memory>
 #include <string>
@@ -45,10 +45,8 @@ struct HeaderInfo {
 typedef std::unique_ptr<HDFFileInfo> HDFFileInfoPtr;
 HDFFileInfoPtr openFile(const std::string& fileName);
 void closeFile(HDFFileInfoPtr hdfFileInfoPtr);
-std::vector<std::string> readMidLevelGroupNames(hid_t grp);
-std::vector<std::string> readTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
-std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
-std::list<std::string> getMidLevelGroupNames(hid_t gid);
+std::deque<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
+std::deque<std::string> getMidLevelGroupNames(hid_t gid);
 bool attrExists(hid_t object, const std::string& attrname);
 hid_t getGroupFromPath(hid_t fd, const std::string &path);
 

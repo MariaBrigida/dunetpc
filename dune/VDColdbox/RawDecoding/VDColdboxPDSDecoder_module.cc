@@ -103,13 +103,13 @@ void dune::VDColdboxPDSDecoder::produce(art::Event& e) {
   fPrevStoredHandle = file_id;
 
   hid_t PDS_group = getGroupFromPath(fHDFFile, group_name + "/PDS");
-  std::vector<std::string> region_names = readMidLevelGroupNames(PDS_group);
+  std::deque<std::string> region_names = getMidLevelGroupNames(PDS_group);
   std::cout << "Got " << region_names.size() << " regions" << std::endl;
   for (const auto & n : region_names) {
     std::cout << n << std::endl;
 
     hid_t region_group = getGroupFromPath(PDS_group, n);
-    std::vector<std::string> element_names = readMidLevelGroupNames(region_group);
+    std::deque<std::string> element_names = getMidLevelGroupNames(region_group);
     std::cout << "Got " << element_names.size() << " elements" << std::endl;   
     for (const auto & element_name : element_names) {
       std::cout << element_name << std::endl;
