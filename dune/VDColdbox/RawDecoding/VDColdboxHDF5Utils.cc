@@ -177,7 +177,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
 
   // This is designed to read 1APA/CRU, only for VDColdBox data. The function uses "apano", handed by DataPrep,
   // as an argument.
-  void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano) 
+  void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan) 
   {
     art::ServiceHandle<dune::VDColdboxChannelMapService> channelMap;
     
@@ -237,6 +237,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
 
                 int offline_chan = channelMap->getOfflChanFromSlotFiberChan(slot, fiber, iChan);
                 if (offline_chan < 0) continue;
+  	        if (offline_chan > maxchan) continue;
 		raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
                 timestamps.push_back(rd_ts);
 		
@@ -255,7 +256,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
   
 void getFragmentsForEvent(
     hid_t hdf_file, const std::string & group_name,
-    RawDigits& raw_digits, RDTimeStamps &timestamps) {
+    RawDigits& raw_digits, RDTimeStamps &timestamps, int maxchan) {
   art::ServiceHandle<dune::VDColdboxChannelMapService> channelMap;
 
   hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
@@ -318,6 +319,7 @@ void getFragmentsForEvent(
               slot, fiber, iChan);
           //std::cout << "Offline chan: " << offline_chan << std::endl;
           if (offline_chan < 0) continue;
+	  if (offline_chan > maxchan) continue;
 
           raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
           timestamps.push_back(rd_ts);
