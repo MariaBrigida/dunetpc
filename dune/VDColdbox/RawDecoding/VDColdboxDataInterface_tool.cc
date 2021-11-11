@@ -156,7 +156,8 @@ void readFragmentsForEvent (art::Event &evt)
 // Keep this here for now. This needs scrutiny regarding whether the input labels are fetching right values.
 VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
   : fForceOpen(p.get<bool>("ForceOpen", false)),
-    fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")) {
+    fFileInfoLabel(p.get<std::string>("FileInfoLabel", "daq")),
+    fMaxChan(p.get<int>("MaxChan",1000000)) {
 }
 
 
@@ -210,7 +211,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
       int apano = i;
       std::cout << "apano: " << i << std::endl;
 
-      dune::VDColdboxHDF5Utils::getFragmentsForEvent(the_group, raw_digits, rd_timestamps, apano);
+      dune::VDColdboxHDF5Utils::getFragmentsForEvent(the_group, raw_digits, rd_timestamps, apano, fMaxChan);
       
       //Currently putting in dummy values for the RD Statuses
       rdstatuses.clear();
@@ -260,7 +261,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   fPrevStoredHandle = stored_handle;
 
   dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile, event_group,
-                                                 raw_digits, rd_timestamps);
+                                                 raw_digits, rd_timestamps, fMaxChan);
   int totretcode = 0;
 
   //Currently putting in dummy values for the RD Statuses

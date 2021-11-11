@@ -107,6 +107,8 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   std::unique_ptr<raw::RDTimeStamp> rd_timestamp(
     new raw::RDTimeStamp(header_info.trigTimestamp));
 
+  //std::cout << "Timestamps:  current and trig: " << currentTime.value() << " " << header_info.trigTimestamp << std::endl;
+
   // make new run if inR is 0 or if the run has changed
   if (inR == 0 || inR->run() != run_id) {
     outR = pmaker.makeRunPrincipal(run_id, currentTime);

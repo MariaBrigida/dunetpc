@@ -60,6 +60,8 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
   bool fForceOpen;
   std::string fFileInfoLabel;
 
+  int fMaxChan = 1000000;  // no maximum for now
+
 };
 
 #endif
