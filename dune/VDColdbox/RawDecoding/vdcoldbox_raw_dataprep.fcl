@@ -1,6 +1,7 @@
 ###include "vdcoldbox_tools.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "protodune_tools_dune.fcl"
+#include "channelstatus_vdcb.fcl"
 #include "vdcb_tools.fcl"
 
 process_name: VDSourcePrep
@@ -40,17 +41,14 @@ services: {
   }
   IFBeam:            {}
   IFDH:              {}
-  ChannelStatusService: {
-    BadChannels: []
-    NoisyChannels: []
-    service_provider: "SimpleChannelStatusService"
-  }
+  ChannelStatusService: @local::data.ChannelStatusService_vdcb1
+  Geometry: @local::dunevdcb_geo
 }
 
 outputs: {
   rootout: {
     module_type: RootOutput
-    fileName: "rawinput_test.root"
+    fileName: "out_raw_dataprep.root"
     dataTier:    "full-reconstructed"
     compressionLevel: 1
   }
@@ -84,6 +82,7 @@ tools.vdtool: {
 #tools.channelGroups: @local::vd_coldbox_channelGroups 
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
+physics.producers.caldata.OnlineChannelMapTool: onlineChannelMapVdcb
 physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.OutputWireName: "dataprep"
 physics.producers.caldata.ChannelGroups: ["crb", "crbg"]

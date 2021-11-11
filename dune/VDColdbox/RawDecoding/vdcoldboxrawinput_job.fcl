@@ -1,7 +1,7 @@
 outputs: {
   rootout: {
     module_type: RootOutput
-    fileName: "rawinput_test.root"
+    fileName: "out_rawinput.root"
     compressionLevel: 1
   }
 }

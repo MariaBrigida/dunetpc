@@ -37,25 +37,15 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
   hdfFileInfoPtr->filePtr = 0;
 }
 
+std::deque<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr) {
+  hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr, "/", H5P_DEFAULT);
+  std::deque<std::string> theList = getMidLevelGroupNames(grp);
+  H5Gclose(grp);
+  return theList;
+}
 
-  // change to a fileinfo reference from a file pointer
-  std::list<std::string> findTopLevelGroupNames(hid_t fd)
-  {
-    hid_t grp = H5Gopen(fd,"/", H5P_DEFAULT);
-    std::list<std::string> theList = getMidLevelGroupNames(grp);
-    H5Gclose(grp);
-    return theList;
-  }
-
-  std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr) {
-    hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr, "/", H5P_DEFAULT);
-    std::list<std::string> theList = getMidLevelGroupNames(grp);
-    H5Gclose(grp);
-    return theList;
-  }
-
-std::list<std::string> getMidLevelGroupNames(hid_t grp) {
-  std::list<std::string> theList;
+std::deque<std::string> getMidLevelGroupNames(hid_t grp) {
+  std::deque<std::string> theList;
   hsize_t nobj = 0;
   H5Gget_num_objs(grp, &nobj);
   for (hsize_t idx = 0; idx < nobj; ++idx) {
@@ -73,28 +63,28 @@ bool attrExists(hid_t object, const std::string &attrname) {
   H5E_auto_t old_func;
   void *old_client_data;
   H5Eget_auto(H5E_DEFAULT,&old_func, &old_client_data);
-
+  
   // Turn off error handling */
   H5Eset_auto(H5E_DEFAULT,NULL, NULL);
-
+  
   // Probe. On failure, retval is supposed to be negative
-
+  
   hid_t retval = H5Aopen_name(object, attrname.data());
-
+  
   // Restore previous error handler 
   H5Eset_auto(H5E_DEFAULT,old_func, old_client_data);
-
+  
   bool result = (retval >= 0);
   return result;
 }
-    
+
 hid_t getGroupFromPath(hid_t fd, const std::string &path) {
   hid_t grp = H5Gopen(fd, path.data(), H5P_DEFAULT);
   return grp;
 }
 
 void getHeaderInfo(hid_t the_group, const std::string & det_type,
-                   HeaderInfo & info) {
+      	     HeaderInfo & info) {
   hid_t datasetid = H5Dopen(the_group, det_type.data(), H5P_DEFAULT);
   hsize_t ds_size = H5Dget_storage_size(datasetid);
   //std::cout << "      Data Set Size (bytes): " << ds_size << std::endl;
@@ -107,41 +97,41 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   if (rdr > 0 || narray == 0) narray++;
   char *ds_data = new char[narray];
   /*herr_t ecode = */H5Dread(datasetid, H5T_STD_I8LE, H5S_ALL, H5S_ALL,
-                             H5P_DEFAULT, ds_data);
+      		       H5P_DEFAULT, ds_data);
   /*
-  int firstbyte = ds_data[0];
-  firstbyte &= 0xFF;
-  int lastbyte = ds_data[narray-1];
-  lastbyte &= 0xFF;*/
+    int firstbyte = ds_data[0];
+    firstbyte &= 0xFF;
+    int lastbyte = ds_data[narray-1];
+    lastbyte &= 0xFF;*/
   //std::cout << std::hex << "      Retrieved data: ecode: " << ecode <<
-               //"  first byte: " << firstbyte << " last byte: " <<
-               //lastbyte << std::dec << std::endl;
+  //"  first byte: " << firstbyte << " last byte: " <<
+  //lastbyte << std::dec << std::endl;
   H5Dclose(datasetid);
-
+  
   //int magic_word = 0;
   memcpy(&info.magicWord, &ds_data[0],4);
   //std::cout << "   Magic word: 0x" << std::hex << info.magicWord << std::dec <<
-               //std::endl;
+  //std::endl;
   
   //int version = 0;
   memcpy(&info.version, &ds_data[4],4);
   //std::cout << "   Version: " << std::dec << info.version << std::dec <<
-               //std::endl;
+  //std::endl;
   
   //uint64_t trignum=0;
   memcpy(&info.trigNum, &ds_data[8],8);
   //std::cout << "   Trig Num: " << std::dec << info.trigNum << std::dec <<
-               //std::endl;
+  //std::endl;
   
   //uint64_t trig_timestamp=0;
   memcpy(&info.trigTimestamp, &ds_data[16],8);
   //std::cout << "   Trig Timestamp: " << std::dec << info.trigTimestamp <<
-               //std::dec << std::endl;
+  //std::dec << std::endl;
   
   //uint64_t nreq=0;
   memcpy(&info.nReq, &ds_data[24],8);
   //std::cout << "   No. of requested components:   " << std::dec << info.nReq <<
-               //std::dec << std::endl;
+  //std::dec << std::endl;
   
   //int runno=0;
   memcpy(&info.runNum, &ds_data[32], 4);
@@ -158,91 +148,86 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   
   //delete[] ds_data;  // free up memory
 } 
+  
 
-void getFragmentsForEvent(
-    hid_t hdf_file, const std::string & group_name,
-    RawDigits& raw_digits, RDTimeStamps &timestamps) {
+// This is designed to read 1APA/CRU, only for VDColdBox data. The function uses "apano", handed by DataPrep,
+// as an argument.
+void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan)  {
   art::ServiceHandle<dune::VDColdboxChannelMapService> channelMap;
+  
+  std::deque<std::string> det_types
+    = getMidLevelGroupNames(the_group);
 
-  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      hdf_file, group_name);
-
-  std::list<std::string> det_types
-      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
-  for (const auto & det : det_types) {
-    if (det != "TPC") continue;
-    hid_t det_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-        the_group, det);
-    std::list<std::string> subdet_types
-        = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(det_group);
-    for (const auto & subdet: subdet_types) {
-      hid_t subdet_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-          det_group, subdet);
-      std::list<std::string> link_names
-          = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(subdet_group);
-      for (const auto & t : link_names) {
-        
-        hid_t dataset = H5Dopen(subdet_group, t.data(), H5P_DEFAULT);
-        hsize_t ds_size = H5Dget_storage_size(dataset);
-        if (ds_size <= sizeof(FragmentHeader)) continue; //Too small
-
-        std::vector<char> ds_data(ds_size);   
-        H5Dread(dataset, H5T_STD_I8LE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-                ds_data.data());
-        H5Dclose(dataset);
-
-        //Each fragment is a collection of WIB Frames
-        Fragment frag(
-            &ds_data[0], Fragment::BufferAdoptionMode::kReadOnlyMode);
-
-        size_t n_frames = (ds_size - sizeof(FragmentHeader))/sizeof(WIBFrame);
-
-        std::vector<raw::RawDigit::ADCvector_t> adc_vectors(256);
-        uint32_t /*crate = 0, */slot = 0, fiber = 0;
-        for (size_t i = 0; i < n_frames; ++i) {
-          auto frame = reinterpret_cast<WIBFrame*>(
-              static_cast<uint8_t*>(frag.get_data()) + i*sizeof(WIBFrame));
-          for (size_t j = 0; j < adc_vectors.size(); ++j) {
-            adc_vectors[j].push_back(frame->get_channel(j));
-          }
-
-          if (i == 0) {
-            //crate = frame->get_wib_header()->crate_no;
-            slot = frame->get_wib_header()->slot_no;
-            fiber = frame->get_wib_header()->fiber_no;
-          }
-        }
-        //std::cout << "Link name, slot, fiber: " << t.data() << ", " << slot << ", " << fiber << std::endl;
-
-        for (size_t iChan = 0; iChan < 256; ++iChan) {
-          const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
-          /*std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() <<
-                       " Timestamp: " << frag.get_trigger_timestamp() <<
-                       std::endl;*/
-
-          int offline_chan = channelMap->getOfflChanFromSlotFiberChan(
-              slot, fiber, iChan);
-          //std::cout << "Offline chan: " << offline_chan << std::endl;
-          if (offline_chan < 0) continue;
-
-          raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
-          timestamps.push_back(rd_ts);
+  for (const auto & det : det_types)
+    {
+      if (det != "TPC") continue;
+      //std::cout << "  Detector type:  " << det << std::endl;
+      hid_t geoGroup = getGroupFromPath(the_group, det);
+      std::deque<std::string> apaNames
+        = getMidLevelGroupNames(geoGroup);
+      
+      std::cout << "Size of apaNames: " << apaNames.size() << std::endl;
+      std::cout << "apaNames[apano]: "  << apaNames[apano-1] << std::endl;
+      
+      // apaNames is a vector whose elements start at [0].
+      hid_t linkGroup = getGroupFromPath(geoGroup, apaNames[apano-1]);
+      std::deque<std::string> linkNames
+        = getMidLevelGroupNames(linkGroup);
+      for (const auto & t : linkNames)
+        {
+          hid_t dataset = H5Dopen(linkGroup, t.data(), H5P_DEFAULT);
+          hsize_t ds_size = H5Dget_storage_size(dataset);
+          if (ds_size <= sizeof(FragmentHeader)) continue; //Too small
           
-          float median = 0., sigma = 0.;
-          getMedianSigma(v_adc, median, sigma);
-          raw::RawDigit rd(offline_chan, v_adc.size(), v_adc);
-          rd.SetPedestal(median, sigma);
-          raw_digits.push_back(rd);
+          std::vector<char> ds_data(ds_size);
+          H5Dread(dataset, H5T_STD_I8LE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                  ds_data.data());
+          H5Dclose(dataset);
+          
+          //Each fragment is a collection of WIB Frames
+          Fragment frag(&ds_data[0], Fragment::BufferAdoptionMode::kReadOnlyMode);
+          size_t n_frames = (ds_size - sizeof(FragmentHeader))/sizeof(WIBFrame);
+          std::vector<raw::RawDigit::ADCvector_t> adc_vectors(256);
+          uint32_t slot = 0, fiber = 0;
+          for (size_t i = 0; i < n_frames; ++i)
+            {
+              auto frame = reinterpret_cast<WIBFrame*>(static_cast<uint8_t*>(frag.get_data()) + i*sizeof(WIBFrame));
+              for (size_t j = 0; j < adc_vectors.size(); ++j)
+                {
+                  adc_vectors[j].push_back(frame->get_channel(j));
+                }
+      	
+              if (i == 0)
+                {
+                  slot = frame->get_wib_header()->slot_no;
+                  fiber = frame->get_wib_header()->fiber_no;
+                }
+            }
+          //std::cout << "slot, fiber: "  << slot << ", " << fiber << std::endl;
+          for (size_t iChan = 0; iChan < 256; ++iChan)
+            {
+              const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
+      	//std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() << " Timestamp: " << frag.get_trigger_timestamp() << std::endl;
+
+              int offline_chan = channelMap->getOfflChanFromSlotFiberChan(slot, fiber, iChan);
+              if (offline_chan < 0) continue;
+	        if (offline_chan > maxchan) continue;
+      	raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
+              timestamps.push_back(rd_ts);
+      	
+              float median = 0., sigma = 0.;
+              getMedianSigma(v_adc, median, sigma);
+      	raw::RawDigit rd(offline_chan, v_adc.size(), v_adc);
+              rd.SetPedestal(median, sigma);
+              raw_digits.push_back(rd);
+            }
+          
         }
-
-      }
-      H5Gclose(subdet_group);
+      H5Gclose(linkGroup);
     }
-    H5Gclose(det_group);
-  }
-  H5Gclose(the_group);
+  
 }
-
+  
 void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
                     float &sigma) {
   size_t asiz = v_adc.size();

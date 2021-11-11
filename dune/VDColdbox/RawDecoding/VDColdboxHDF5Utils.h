@@ -1,10 +1,10 @@
 #ifndef VDColdboxHDF5Utils_h
 #define VDColdboxHDF5Utils_h
 
-#include "artdaq-core/Data/Fragment.hh"
+//#include "artdaq-core/Data/Fragment.hh"
 
 #include <hdf5.h>
-#include <list>
+#include <deque>
 #include <map>
 #include <memory>
 #include <string>
@@ -45,9 +45,8 @@ struct HeaderInfo {
 typedef std::unique_ptr<HDFFileInfo> HDFFileInfoPtr;
 HDFFileInfoPtr openFile(const std::string& fileName);
 void closeFile(HDFFileInfoPtr hdfFileInfoPtr);
-std::list<std::string> findTopLevelGroupNames(hid_t fd);
-std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
-std::list<std::string> getMidLevelGroupNames(hid_t gid);
+std::deque<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr);
+std::deque<std::string> getMidLevelGroupNames(hid_t gid);
 bool attrExists(hid_t object, const std::string& attrname);
 hid_t getGroupFromPath(hid_t fd, const std::string &path);
 
@@ -56,8 +55,9 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
 
 typedef std::vector<Fragment> Fragments;
 typedef std::map<std::string, std::unique_ptr<Fragments>> FragmentListsByType;
+ void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan);
 void getFragmentsForEvent(hid_t hdf_file, const std::string & group_name,
-                          RawDigits& raw_digits, RDTimeStamps &timestamps);
+                          RawDigits& raw_digits, RDTimeStamps &timestamps, int maxchan);
 void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
                     float &sigma);
 }
