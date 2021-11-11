@@ -62,10 +62,7 @@ outputs: {
   }
 }
 
-source:
-{
-    module_type: RootInput
-    maxEvents : -1
+source: {
+  module_type: VDColdboxHDF5RawInput
+  #fileName: "dune_test.root"
 }
-
-physics.producers.decoder.ForceOpen: true

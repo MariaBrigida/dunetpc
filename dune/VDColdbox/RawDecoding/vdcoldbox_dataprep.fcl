@@ -45,6 +45,7 @@ services: {
   IFBeam:            {}
   IFDH:              {}
 }
+services.DatabaseUtil: @erase
 
 physics: {
   producers: {
