@@ -439,19 +439,22 @@ void dune::VDColdboxTDEChannelMapService::vdcb1crpMap(){
   dune::tde::crp_connectors crp_conn( 0, nview );
   int ch_start = 0;
   for( auto const k : kel_view0 ){
-    crp_conn.add_connector( k, 0, true, ch_start );
+    //crp_conn.add_connector( k, 0, true, ch_start );
+    crp_conn.add_connector( k, 0, false, ch_start );
     ch_start += dune::tde::ch_per_kel;
   }
   ch_start = 0;
   for( auto const k : kel_view1 ){
-    bool reverse = (k <= 13);
+    //bool reverse = (k <= 13);
+    bool reverse = (k > 13);
     crp_conn.add_connector( k, 1, reverse, ch_start );
     ch_start += dune::tde::ch_per_kel;
   }
 
   ch_start = 0;
   for( auto const k : kel_view2 ){
-    crp_conn.add_connector( k, 2, true, ch_start );
+    //crp_conn.add_connector( k, 2, true, ch_start );
+    crp_conn.add_connector( k, 2, false, ch_start );
     ch_start += dune::tde::ch_per_kel;
   }
 

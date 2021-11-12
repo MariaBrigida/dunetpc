@@ -48,6 +48,8 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
     art::RunPrincipal*& outR,
     art::SubRunPrincipal*& outSR,
     art::EventPrincipal*& outE) {
+
+  using namespace dune::VDColdboxHDF5Utils;
   // Establish default 'results'
   outR = 0;
   outSR = 0;
@@ -77,13 +79,12 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
                       //with art
 
   //Accessing run number
-  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+  hid_t the_group = getGroupFromPath(
       hdf_file_->filePtr, nextEventGroupName);
-  std::list<std::string> detector_types =
-      dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
-  dune::VDColdboxHDF5Utils::HeaderInfo header_info;
+  //std::vector<std::string> detector_types = getMidLevelGroupNames(the_group);
+  HeaderInfo header_info;
   std::string det_type = "TriggerRecordHeader";
-  dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, header_info);
+  getHeaderInfo(the_group, det_type, header_info);
   if (fLogLevel > 0) {
     std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
                  std::dec << std::endl;
@@ -106,6 +107,8 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   run_id = header_info.runNum;
   std::unique_ptr<raw::RDTimeStamp> rd_timestamp(
     new raw::RDTimeStamp(header_info.trigTimestamp));
+
+  //std::cout << "Timestamps:  current and trig: " << currentTime.value() << " " << header_info.trigTimestamp << std::endl;
 
   // make new run if inR is 0 or if the run has changed
   if (inR == 0 || inR->run() != run_id) {
