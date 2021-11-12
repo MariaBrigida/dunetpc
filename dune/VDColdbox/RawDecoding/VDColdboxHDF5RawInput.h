@@ -48,7 +48,7 @@ class raw::VDColdboxHDF5RawInputDetail {
 
  private:
   std::unique_ptr<dune::VDColdboxHDF5Utils::HDFFileInfo> hdf_file_;
-  std::list<std::string> unprocessedEventList_;
+  std::deque<std::string> unprocessedEventList_;
   std::string pretend_module_name;
   int fLogLevel;
   art::SourceHelper const& pmaker;
