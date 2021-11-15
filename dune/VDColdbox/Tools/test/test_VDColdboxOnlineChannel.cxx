@@ -33,7 +33,7 @@ using IndexVector = std::vector<Index>;
 string sonline(Index ichaOn) {
   ostringstream ssout;
   Index irem = ichaOn;
-  Index ifmb = irem/128 + 1;
+  Index ifmb = irem/128;
   irem = irem%128;
   Index iasc = irem/16 + 1;
   Index iach = irem%16;
