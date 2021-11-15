@@ -105,6 +105,8 @@ class raw::VDColdboxTDERawInput
 
   uint32_t 		      __eventCtr; 
   uint32_t                    __eventNum;
+  
+  int                         __maxEvents;
 
   // number of uncompressed samples per channel
   size_t __nsacro;
