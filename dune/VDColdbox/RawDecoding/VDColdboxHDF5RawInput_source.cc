@@ -2,7 +2,7 @@
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "dune/VDColdbox/RawDecoding/VDColdboxHDF5RawInput.h"
-
+//#include "TTimeStamp.h"
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 
@@ -42,14 +42,14 @@ void raw::VDColdboxHDF5RawInputDetail::readFile(
                           filename); 
 }
 
-bool raw::VDColdboxHDF5RawInputDetail::readNext(
-    art::RunPrincipal const* const inR,
-    art::SubRunPrincipal const* const inSR,
-    art::RunPrincipal*& outR,
-    art::SubRunPrincipal*& outSR,
-    art::EventPrincipal*& outE) {
-
+bool raw::VDColdboxHDF5RawInputDetail::readNext(art::RunPrincipal const* const inR,
+                                                art::SubRunPrincipal const* const inSR,
+                                                art::RunPrincipal*& outR,
+                                                art::SubRunPrincipal*& outSR,
+                                                art::EventPrincipal*& outE) 
+{
   using namespace dune::VDColdboxHDF5Utils;
+  
   // Establish default 'results'
   outR = 0;
   outSR = 0;
@@ -59,28 +59,12 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   std::string nextEventGroupName = unprocessedEventList_.front();
   unprocessedEventList_.pop_front();
 
-  art::Timestamp currentTime = 0;
-  timespec hi_res_time;
-  int retcode = clock_gettime(CLOCK_REALTIME, &hi_res_time);
-  MF_LOG_INFO("VDColdboxHDF5") << "hi_res_time tv_sec = " << hi_res_time.tv_sec
-                             << " tv_nsec = " << hi_res_time.tv_nsec << " (retcode = " << retcode << ")";
-  if (retcode == 0) {
-    currentTime = ((hi_res_time.tv_sec & 0xffffffff) << 32) | (hi_res_time.tv_nsec & 0xffffffff);
-  }
-  else {
-    MF_LOG_ERROR("VDColdboxHDF5")
-      << "Unable to fetch a high-resolution time with clock_gettime for art::Event Timestamp. "
-      << "The art::Event Timestamp will be zero for event ";
-  }
-
-
   size_t run_id = 999; //runNumber can be 0,
                       //but this seems like an issue
                       //with art
 
   //Accessing run number
-  hid_t the_group = getGroupFromPath(
-      hdf_file_->filePtr, nextEventGroupName);
+  hid_t the_group = getGroupFromPath (hdf_file_->filePtr, nextEventGroupName);
   //std::vector<std::string> detector_types = getMidLevelGroupNames(the_group);
   HeaderInfo header_info;
   std::string det_type = "TriggerRecordHeader";
@@ -103,22 +87,32 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
     std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
                  std::endl;
   }
+   MF_LOG_INFO("VDColdboxHDF5") << "header_info.trigTimestamp :" << header_info.trigTimestamp << std::endl;
+
+   // trigTimeStamp is NOT time but Clock-tick since the epoch.
+   uint64_t trigTimeStamp = header_info.trigTimestamp;
+    
+   uint64_t getTrigTime = formatTrigTimeStamp (trigTimeStamp);
+   std::cout << "getTrigTime :" << getTrigTime << std::endl;
+  
+   art::Timestamp artTrigStamp (getTrigTime);
+   std::cout << "artTrigStamp :" << artTrigStamp.value() << std::endl;
 
   run_id = header_info.runNum;
   std::unique_ptr<raw::RDTimeStamp> rd_timestamp(
     new raw::RDTimeStamp(header_info.trigTimestamp));
 
-  //std::cout << "Timestamps:  current and trig: " << currentTime.value() << " " << header_info.trigTimestamp << std::endl;
+ 
 
   // make new run if inR is 0 or if the run has changed
   if (inR == 0 || inR->run() != run_id) {
-    outR = pmaker.makeRunPrincipal(run_id, currentTime);
+    outR = pmaker.makeRunPrincipal(run_id,artTrigStamp);
   }
 
   // make new subrun if inSR is 0 or if the subrun has changed
   art::SubRunID subrun_check(run_id, 1);
   if (inSR == 0 || subrun_check != inSR->subRunID()) {
-    outSR = pmaker.makeSubRunPrincipal(run_id, 1, currentTime);
+    outSR = pmaker.makeSubRunPrincipal(run_id, 1, artTrigStamp);
   }
 
   //Where to get event number?
@@ -128,9 +122,9 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   auto pos = event_str.begin() + event_str.find(trig);
   event_str.erase(pos, pos + trig.size());
   int event = std::stoi(event_str);
-  outE = pmaker.makeEventPrincipal(run_id, 1, event, currentTime);
-
-  
+  outE = pmaker.makeEventPrincipal(run_id, 1, event, artTrigStamp);
+  //std::cout << "Event Time Stamp :" << event.time() << std::endl;
+ 
   std::unique_ptr<DUNEHDF5FileInfo> the_info(
       new DUNEHDF5FileInfo(hdf_file_->fileName, hdf_file_->filePtr,
                            0, nextEventGroupName));

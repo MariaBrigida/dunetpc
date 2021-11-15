@@ -58,7 +58,21 @@ std::deque<std::string> getMidLevelGroupNames(hid_t grp) {
   return theList;
 }
 
-bool attrExists(hid_t object, const std::string &attrname) {
+  
+  uint64_t formatTrigTimeStamp (uint64_t trigTimeStamp)
+  {
+    int clock_period = 20; //20 ns with 50MHz DAQClock //FIXME don't hardcode
+    uint64_t trigtime = trigTimeStamp * clock_period; //time in ns 
+    uint64_t million = 1e9;
+    uint64_t trigtime_sec =  trigtime/million;
+    std::cout << "trigtime_sec: " << trigtime_sec << std::endl;
+    uint64_t trigtime_nanosec = trigtime % million;
+    uint64_t toReturn = (trigtime_sec << 32) | trigtime_nanosec;
+    return toReturn;
+  }
+       
+
+  bool attrExists(hid_t object, const std::string &attrname) {
   // Save old error handler 
   H5E_auto_t old_func;
   void *old_client_data;
