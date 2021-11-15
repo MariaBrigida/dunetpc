@@ -22,6 +22,8 @@
 #include <hdf5.h>
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include "VDColdboxHDF5Utils.h"
+#include "daqdataformats/Fragment.hpp"
+#include "detdataformats/ssp/SSPTypes.hpp"
 
 #include <memory>
 
@@ -70,6 +72,7 @@ dune::VDColdboxPDSDecoder::VDColdboxPDSDecoder(fhicl::ParameterSet const& p)
 void dune::VDColdboxPDSDecoder::produce(art::Event& e) {
 
   using namespace dune::VDColdboxHDF5Utils;
+  using namespace dunedaq::dataformats;
 
   //To-do: put in sizes here?
   std::unique_ptr<std::vector<raw::OpDetWaveform>> output_wfs
@@ -100,13 +103,13 @@ void dune::VDColdboxPDSDecoder::produce(art::Event& e) {
   fPrevStoredHandle = file_id;
 
   hid_t PDS_group = getGroupFromPath(fHDFFile, group_name + "/PDS");
-  std::vector<std::string> region_names = readMidLevelGroupNames(PDS_group);
+  std::deque<std::string> region_names = getMidLevelGroupNames(PDS_group);
   std::cout << "Got " << region_names.size() << " regions" << std::endl;
   for (const auto & n : region_names) {
     std::cout << n << std::endl;
 
     hid_t region_group = getGroupFromPath(PDS_group, n);
-    std::vector<std::string> element_names = readMidLevelGroupNames(region_group);
+    std::deque<std::string> element_names = getMidLevelGroupNames(region_group);
     std::cout << "Got " << element_names.size() << " elements" << std::endl;   
     for (const auto & element_name : element_names) {
       std::cout << element_name << std::endl;
@@ -120,7 +123,51 @@ void dune::VDColdboxPDSDecoder::produce(art::Event& e) {
               ds_data.data());
       H5Dclose(dataset);
 
-      std::cout << "\tRead " << ds_data.size() << " bytes" << std::endl;
+      Fragment frag(&ds_data[0], Fragment::BufferAdoptionMode::kReadOnlyMode);
+      std::cout << "\tMade fragment" << std::endl;
+      std::cout << "\t" << frag.get_header() << std::endl;
+
+      
+      uint8_t * data_ptr = reinterpret_cast<uint8_t*>(frag.get_data());
+      size_t event_header_size = sizeof(EventHeader)/sizeof(unsigned int);
+
+      size_t iP = 0;
+      size_t data_pos = 0;
+      while (data_pos < (frag.get_header().size - sizeof(FragmentHeader))) {
+        EventHeader * event_header
+            = reinterpret_cast<EventHeader*>(data_ptr + data_pos);
+        std::cout << "\tEvent header " << event_header->length << std::endl;
+
+        unsigned int nADC = (event_header->length - event_header_size)*2;
+        std::cout << "\tnADC: " << nADC << std::endl;
+        std::cout << "\t" << iP << std::endl;
+
+        unsigned long ts = 0;
+        for (unsigned int iword = 0; iword <= 3; ++iword) {
+          ts += ((unsigned long)(event_header->timestamp[iword])) << 16 * iword;
+        }
+
+        //Need time, channel
+        raw::OpDetWaveform wf(ts, 0, nADC);
+
+        //Iterate to the start of the adc data
+        unsigned short * adc_ptr = reinterpret_cast<unsigned short *>(
+            data_ptr + data_pos + event_header_size);
+
+        //unsigned short peak_time = 0;
+        //unsigned short max_adc = 0;
+
+        for (size_t i = 0; i < nADC; ++i) {
+          wf.push_back(*(adc_ptr + i));
+          //max_adc = std::max(max_adc, *(adc_ptr + i));
+          //if(max_adc == *adc) calpeaktime = idata;
+        }
+        output_wfs->emplace_back(wf);
+
+        data_pos += event_header->length;
+        ++iP;
+      }
+      std::cout << "Iterated through " << iP << " packets " << std::endl;
     }
     H5Gclose(region_group);
   }

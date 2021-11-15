@@ -45,5 +45,10 @@ private:
   Index m_glo;
   Index m_ghi;
 
+  using RangeMap = std::map<Name, IndexRange>;
+  RangeMap m_rans;
+
+  void insert(Name sran, Index ich1, Index ich2, Name slab1);
+
 };
 #endif
