@@ -178,13 +178,29 @@ int main(int argc, char **argv)
 	      int wib=wibvec.at(ifemb);
 	      int wibconnector=wibconnectorvec.at(ifemb);
 	      int iofflchan = getOfflChanFromWIBConnectorInfo(wib,wibconnector,ichan);
-	      int asic = 1 + ichan/16;
-	      int asicchan = ichan % 16;
 	      int streamchannel = ichan;  // felixCh[asic-1][asicchan];  already in stream channel basis
 
 	      int connector = 0;
 	      if (iofflchan < 0)
 		{
+
+		  int asic = -1; //    fake number: 1 + ichan/16;
+	          int asicchan = -1; // fake number: ichan % 16;
+
+		  // loop over existing fembs to see if we can find asic and asicchans corresponding to the streamchannel
+
+		  for (int ifemb2 = 1; ifemb2 <15; ++ifemb2)
+		    {
+	              int wib2=wibvec.at(ifemb2);
+	              int wibconnector2=wibconnectorvec.at(ifemb2);
+	              int iofflchan2 = getOfflChanFromWIBConnectorInfo(wib2,wibconnector2,ichan);
+		      if (iofflchan2 < 0) continue;  // didn't find it on this FEMB, go to the next one
+		      VDCBChanInfo ci = getChanInfoFromOfflChan(iofflchan2);
+		      asic = ci.asic;
+		      asicchan = ci.asicchan;
+		      break;
+		    }
+		  
 		  std::string stripid="D";
 		  stripid += std::to_string(idc);
                   std::cout << std::setw(8) << idc+disconnectedChanOffset << " " << std::setw(8) << wib << " " << std::setw(8) << wibconnector << " " << std::setw(8) << streamchannel << " " << std::setw(8) << ifemb << " " << std::setw(8) << asic << " " << std::setw(8) << asicchan << " " << std::setw(8) << connector << " " << std::setw(8) << stripid << std::endl;

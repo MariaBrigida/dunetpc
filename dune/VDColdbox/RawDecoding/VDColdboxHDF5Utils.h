@@ -42,6 +42,7 @@ struct HeaderInfo {
   short triggerType = 0;
 };
 
+uint64_t formatTrigTimeStamp (uint64_t trigTimeStamp);
 typedef std::unique_ptr<HDFFileInfo> HDFFileInfoPtr;
 HDFFileInfoPtr openFile(const std::string& fileName);
 void closeFile(HDFFileInfoPtr hdfFileInfoPtr);
