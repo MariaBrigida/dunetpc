@@ -13,7 +13,7 @@ services:
 source:
 {
   module_type: VDColdboxTDERawInput
-  maxEvents: 2
+  maxEvents: -1
   fileNames: [ "np02rawdata.dat" ]
   LogLevel: 1 
   SamplesPerChannel:    10000
