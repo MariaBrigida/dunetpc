@@ -118,6 +118,7 @@ namespace raw
     __outlbl_digits  = pset.get<std::string>("OutputLabelRawDigits", "daq");
     __outlbl_rdtime  = pset.get<std::string>("OutputLabelRDTime", "daq");
     __outlbl_status  = pset.get<std::string>("OutputLabelRDStatus", "daq");
+    __maxEvents      = pset.get<int>("maxEvents", -1);
     auto vecped_crps = pset.get<std::vector<UIntVec>>("InvertBaseline", std::vector<UIntVec>());
     auto select_crps = pset.get<std::vector<unsigned>>("SelectCRPs", std::vector<unsigned>());
         
@@ -139,6 +140,7 @@ namespace raw
 	std::cout << myname << "       Configuration        : " << std::endl;
 	std::cout << myname << "       LogLevel             : " << __logLevel  << std::endl;
 	std::cout << myname << "       SamplesPerChannel    : " << __nsacro << std::endl;
+	std::cout << myname << "       maxEvents            : " << __maxEvents << std::endl;
 	std::cout << myname << "       StartTDEChCRU        : " << __start_tde_cru << std::endl;
 	std::cout << myname << "       OutputLabelRawDigits : " << __outlbl_digits << std::endl;
 	std::cout << myname << "       OutputLabelRDStatus  : " << __outlbl_status << std::endl;
@@ -288,6 +290,9 @@ namespace raw
 	mf::LogDebug(__FUNCTION__)<<"Finished reading "<<__eventNum<<" events";
 	return false;
       }
+    if( (__maxEvents > 0 ) && ( (int)__eventCtr >= __maxEvents) ){
+      return false;
+    }
     
     // move to the next file position
     if( __events[ __eventCtr ] != __file.tellg() )
