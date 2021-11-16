@@ -98,10 +98,34 @@ void test::Pi0AnalysisPlots::beginJob()
   // Implementation of optional member function here.
   fTestTree = tfs->make<TTree>("Test","Test Tree");
 
-  //TestReadFile
-  fTestTree->Branch("mcParticleVertexX_test", &fMcParticleVertexX_test);
 
-  TTree *tree = (TTree*)fTestFile->Get("ana/Event");
+  TTree *pi0Tree = (TTree*)fTestFile->Get("ana/Pi0");
+  //TTree *eventTree = (TTree*)fTestFile->Get("ana/Event");
+
+  //pi0Tree->Print();
+
+  std::cout << "deb3" << std::endl;
+
+  //Read pi0 branches
+  unsigned int pi0Daughter1TrackID, pi0Daughter2TrackID, pi0GlobalEventID;
+  unsigned int pi0Daughter1Position, pi0Daughter2Position;
+  pi0Tree->SetBranchAddress("pi0GlobalEventID",&pi0GlobalEventID);
+  pi0Tree->SetBranchAddress("pi0Daughter1TrackID",&pi0Daughter1TrackID);
+  pi0Tree->SetBranchAddress("pi0Daughter2TrackID",&pi0Daughter2TrackID);
+  pi0Tree->SetBranchAddress("pi0Daughter1Position", &pi0Daughter1Position);
+  pi0Tree->SetBranchAddress("pi0Daughter2Position", &pi0Daughter2Position);
+  for(int iEntry=0; iEntry<pi0Tree->GetEntries(); iEntry++){
+    pi0Tree->GetEntry(iEntry);
+    std::cout << "pi0GlobalEventID = " << pi0GlobalEventID << " pi0Daughter1TrackID = " << pi0Daughter1TrackID << " pi0Daughter2TrackID = " << pi0Daughter2TrackID << std::endl;
+    std::cout << "pi0Daughter1Position = " << pi0Daughter1Position << " pi0Daughter2Position = " << pi0Daughter2Position << std::endl;
+    
+  }
+
+
+/*
+  //TestReadFile
+  //fTestTree->Branch("mcParticleVertexX_test", &fMcParticleVertexX_test);
+
   std::cout << "deb5" << std::endl;
   std::vector<double> *mcParticleVertexX = 0;
   std::cout << "deb6" << std::endl;
@@ -109,7 +133,7 @@ void test::Pi0AnalysisPlots::beginJob()
   TBranch *b_mcParticleVertexX;
   tree->SetBranchAddress("mcParticleVertexX",&mcParticleVertexX, &b_mcParticleVertexX);
   std::cout << "debug 61" << std::endl;
-  tree->Print();
+  //tree->Print();
   std::cout << "deb7. tree->GetEntries() = " << tree->GetEntries() << std::endl;
   for(int iEntry=0; iEntry<tree->GetEntries(); iEntry++){
     std::cout << "deb 70" << std::endl;
@@ -122,7 +146,7 @@ void test::Pi0AnalysisPlots::beginJob()
     fMcParticleVertexX_test.clear();
   }
   std::cout << "deb8" << std::endl;
-
+*/
 }
 
 void test::Pi0AnalysisPlots::endJob()
