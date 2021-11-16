@@ -20,7 +20,7 @@ source:
   OutputLabelRawDigits: "daq"
   OutputLabelRDTime:    "timingrawdecoder:daq"
   OutputLabelRDStatus:  "daq"
-  InvertBaseline: [[0, 2048]]
+  InvertBaseline: [[0, 4096]]
   SelectCRPs: []
 }
 

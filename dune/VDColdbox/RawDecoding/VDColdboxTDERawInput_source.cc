@@ -10,6 +10,8 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "canvas/Utilities/Exception.h"
 
+#include "TMath.h"
+
 // DUNE includes
 #include "dune/DuneObj/RDStatus.h"
 
@@ -42,6 +44,39 @@ using UIntVec = std::vector<unsigned>;
 //
 namespace 
 {
+  // from VDColdboxHDF5Utils
+  void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, 
+		      float &median,
+		      float &sigma) {
+    size_t asiz = v_adc.size();
+    int imed=0;
+    if (asiz == 0) {
+      median = 0;
+      sigma = 0;
+    }
+    else {
+      // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
+
+      imed = TMath::Median(asiz,v_adc.data()) + 0.01;  // add an offset to make sure the floor gets the right integer
+      median = imed;
+      sigma = TMath::RMS(asiz,v_adc.data());
+
+      // add in a correction suggested by David Adams, May 6, 2019
+
+      size_t s1 = 0;
+      size_t sm = 0;
+      for (size_t i = 0; i < asiz; ++i) {
+	if (v_adc.at(i) < imed) s1++;
+	if (v_adc.at(i) == imed) sm++;
+      }
+      if (sm > 0) {
+	float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
+	//if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
+	median += mcorr;
+      }
+    }
+  }
+  
   void unpackData( const char *buf, size_t nb, bool cflag, 
 		   unsigned nsa, adcbuf_t &data )
   {
@@ -364,6 +399,7 @@ namespace raw
 	cru_ch++;
 	
 	// raw digit 
+
 	if( __keepch[i] ){
 	  unsigned invped = __invped[i];
 	  if( invped > 0 ){
@@ -372,9 +408,13 @@ namespace raw
 	      e = (short)(v);
 	    }
 	  }
+
+	  float median = 0., sigma = 0.;
+	  getMedianSigma(event.crodata[daqch], median, sigma);
 	  data->push_back( raw::RawDigit(ch, __nsacro, 
 					 std::move( event.crodata[daqch] ), 
 					 event.compression) );
+	  data->back().SetPedestal( median, sigma );
 	}
 	else {
 	  data->push_back( raw::RawDigit(ch, 0, dummy, event.compression) );
