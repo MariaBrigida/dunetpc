@@ -17,7 +17,7 @@ source:
   fileNames: [ "np02rawdata.dat" ]
   LogLevel: 1 
   SamplesPerChannel:    10000
-  OutputLabelRawDigits: "daq"
+  OutputLabelRawDigits: "tpcrawdecoder:daq"
   OutputLabelRDTime:    "timingrawdecoder:daq"
   OutputLabelRDStatus:  "daq"
   InvertBaseline: [[0, 4096]]
