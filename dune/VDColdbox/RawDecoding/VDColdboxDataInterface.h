@@ -16,6 +16,9 @@
 typedef dunedaq::daqdataformats::Fragment duneFragment;
 typedef std::vector<duneFragment> duneFragments; 
 
+typedef std::vector<raw::RawDigit> RawDigits;
+typedef std::vector<raw::RDTimeStamp> RDTimeStamps;
+
 class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
  public:
@@ -52,6 +55,11 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
   void _collectRDStatus(std::vector<raw::RDStatus> &rdstatuses){};
+  void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits,
+                            RDTimeStamps &timestamps, int apano,
+                            int maxchan);
+  void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
+                      float &sigma);
 
   //For nicer log syntax
   std::string logname = "VDColdboxDataInterface";

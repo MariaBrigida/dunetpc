@@ -12,7 +12,7 @@ end_paths : [ output ]
 }
 
 source: {
-  module_type: VDColdboxHDF5RawInput
+  module_type: HDF5RawInput
   fileName: "/dune/data/users/barnali/download"
 }
 

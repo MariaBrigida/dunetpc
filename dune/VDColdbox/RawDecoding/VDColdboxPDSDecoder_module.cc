@@ -21,7 +21,7 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include <hdf5.h>
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
-#include "VDColdboxHDF5Utils.h"
+#include "dune/HDF5Utils/HDF5Utils.h"
 #include "daqdataformats/Fragment.hpp"
 #include "detdataformats/ssp/SSPTypes.hpp"
 
@@ -77,7 +77,7 @@ dune::VDColdboxPDSDecoder::VDColdboxPDSDecoder(fhicl::ParameterSet const& p)
 
 void dune::VDColdboxPDSDecoder::produce(art::Event& e) {
 
-  using namespace dune::VDColdboxHDF5Utils;
+  using namespace dune::HDF5Utils;
   using namespace dunedaq::dataformats;
 
   //To-do: put in sizes here?
