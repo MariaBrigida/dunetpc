@@ -50,5 +50,7 @@ private:
 
   void insert(Name sran, Index ich1, Index ich2, Name slab1);
 
+  void assignFembRanges();
+
 };
 #endif
