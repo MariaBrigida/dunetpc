@@ -17,8 +17,8 @@ services:
    #ExptGeoHelperInterface:         @local::dune_geometry_helper
    #Geometry: @local::dune10kt_1x2x6_refactored_geo
    #Geometry: @local::dune10kt_v2_1x2x6
-   Geometry: @local::dune10kt_1x2x6_v2_geo
-   #Geometry: @local::dune10kt_1x2x6_v4_geo
+   #Geometry: @local::dune10kt_1x2x6_v2_geo
+   Geometry: @local::dune10kt_1x2x6_v4_geo
 
 }
 
