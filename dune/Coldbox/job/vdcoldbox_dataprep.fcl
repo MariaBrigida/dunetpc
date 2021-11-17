@@ -1,10 +1,10 @@
-###include "vdcoldbox_tools.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "protodune_tools_dune.fcl"
-#include "channelstatus_vdcb.fcl"
 #include "vdcb_tools.fcl"
 
-process_name: VDSourcePrep
+
+
+process_name: VDRawDigit
 
 services: {
   TimeTracker:       @local::dune_time_tracker
@@ -31,7 +31,9 @@ services: {
     
 
   VDColdboxChannelMapService: {
-    FileName:         "vdcbce_chanmap_v1_dcchan3200.txt"
+    #FileName:         "vdcbce_chanmap_v1.txt"
+    #FileName: "vdcbce_chanmap_v1_verticalslice.txt"
+    FileName: "vdcbce_chanmap_v1_dcchan3200.txt"
     LogLevel:         1
   }
   TFileService: { 
@@ -41,18 +43,8 @@ services: {
   }
   IFBeam:            {}
   IFDH:              {}
-  ChannelStatusService: @local::data.ChannelStatusService_vdcb1
-  Geometry: @local::dunevdcb_geo
 }
-
-outputs: {
-  rootout: {
-    module_type: RootOutput
-    fileName: "out_raw_dataprep.root"
-    dataTier:    "full-reconstructed"
-    compressionLevel: 1
-  }
-}
+services.DatabaseUtil: @erase
 
 physics: {
   producers: {
@@ -63,34 +55,60 @@ physics: {
     caldata
   ]
 
-  output : [ rootout ]
+  output: [out1]
   trigger_paths: [produce]
-  end_paths : [ output ]
+  end_paths: [output]
 }
 
-source: {
-  module_type: HDF5RawInput
+outputs: {
+  out1: {
+    compressionLevel: 1
+    module_type: RootOutput
+    saveMemoryObjectThreshold: 10485760
+    fileName: "%ifb_reco1.root"
+    dataTier:    "full-reconstructed"
+    #outputCommands: [ "drop *", "keep raw::RawDigitrecob*_*_*_*", "keep recob::*_*_*_*" ]
+  }
+}
+
+source:
+{
+    module_type: RootInput
+    maxEvents : -1
 }
 
 tools.vdtool: {
   tool_type: "VDColdboxDataInterface"
+  ForceOpen: true
 }
 
-
+##### 
+#tools.channelRanges: {
+#  tool_type: VDColdboxChannelRanges
+#  LogLevel: 1
+#}
+#
+#tools.channelGroups: {
+#  tool_type: VDColdboxChannelGroups
+#  LogLevel: 1
+#}
 #tools.channelRanges: @local::vd_coldbox_channelRanges 
 #tools.channelGroups: @local::vd_coldbox_channelGroups 
+
 services.LArFFT.FFTSize: 10000
 physics.producers.caldata.DecoderTool: "vdtool"
-physics.producers.caldata.OnlineChannelMapTool: onlineChannelMapVdcb
 physics.producers.caldata.OutputDigitName: "dataprep"
 physics.producers.caldata.OutputWireName: "dataprep"
 physics.producers.caldata.ChannelGroups: ["crb", "crbg"]
+tools.channelRanges.GhostRange: [3456, 3647]
+physics.producers.caldata.LogLevel: 3
+
 services.RawDigitPrepService.ToolNames: [
   digitReader,            # Unpack the digits acd.raw[] and acd.pedestal
   adcSampleFiller,        # Fill acd.samples from acd.raw - pedestal
-  vdccb_adcChannelPedestalPlotter,   # Plot pedestals
-  vdccb_adcChannelRawRmsPlotter,     # Plot ADC-pedestal RMS
+  vdcbb_adcChannelPedestalPlotter,   # Plot pedestals
+  vdcbb_adcChannelRawRmsPlotter,     # Plot ADC-pedestal RMS
   adcKeepAllSignalFinder  # Flag all samples as signal, i.e. acd.signal[] = true
 ]
 
-tools.vdbcb_adcChannelRawRmsPlotter.MetricMax: 100
+tools.vdcbb_adcChannelRawRmsPlotter.MetricMax: 100

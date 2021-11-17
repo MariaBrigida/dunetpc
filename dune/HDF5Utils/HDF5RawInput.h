@@ -1,5 +1,5 @@
-#ifndef VDColdboxHDF5RawInput_h
-#define VDColdboxHDF5RawInput_h
+#ifndef HDF5RawInput_h
+#define HDF5RawInput_h
 #include "art/Framework/Core/InputSourceMacros.h" 
 #include "art/Framework/IO/Sources/Source.h" 
 #include "art/Framework/IO/Sources/SourceTraits.h"
@@ -16,20 +16,20 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 //#include "dune-raw-data/HDFUtils/HDFFileReader.hh"
-#include "dune/VDColdbox/RawDecoding/VDColdboxHDF5Utils.h"
+#include "HDF5Utils.h"
 
 
 
 //Is raw a good namespace?
-namespace raw {
+namespace dune {
 //Forward declare the class
 //The Class name is too long
-class VDColdboxHDF5RawInputDetail;
+class HDF5RawInputDetail;
 }
 
-class raw::VDColdboxHDF5RawInputDetail {
+class dune::HDF5RawInputDetail {
  public:
-  VDColdboxHDF5RawInputDetail(fhicl::ParameterSet const & ps,
+  HDF5RawInputDetail(fhicl::ParameterSet const & ps,
                               art::ProductRegistryHelper & rh,
                               art::SourceHelper const & sh);
 
@@ -43,11 +43,11 @@ class raw::VDColdboxHDF5RawInputDetail {
 
   void closeCurrentFile() {
     if (hdf_file_->filePtr)
-      dune::VDColdboxHDF5Utils::closeFile(std::move(hdf_file_));
+      dune::HDF5Utils::closeFile(std::move(hdf_file_));
   };
 
  private:
-  std::unique_ptr<dune::VDColdboxHDF5Utils::HDFFileInfo> hdf_file_;
+  std::unique_ptr<dune::HDF5Utils::HDFFileInfo> hdf_file_;
   std::deque<std::string> unprocessedEventList_;
   std::string pretend_module_name;
   int fLogLevel;

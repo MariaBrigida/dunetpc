@@ -1,21 +1,11 @@
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
-#include "dune/VDColdbox/RawDecoding/VDColdboxHDF5RawInput.h"
-//#include "TTimeStamp.h"
+#include "dune/HDF5Utils/HDF5RawInput.h"
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 
-// Use the standard service interfaces (CatalogInterface and
-// FileTransfer) to obtain files.
-//namespace art {
-//template <raw::VDColdboxHDF5RawInputDetail>
-//struct Source_wantFileServices {
-//  static constexpr bool value = false
-//};
-//}
-
-raw::VDColdboxHDF5RawInputDetail::VDColdboxHDF5RawInputDetail(
+dune::HDF5RawInputDetail::HDF5RawInputDetail(
     fhicl::ParameterSet const & ps,
     art::ProductRegistryHelper & rh,
     art::SourceHelper const & sh) 
@@ -26,29 +16,29 @@ raw::VDColdboxHDF5RawInputDetail::VDColdboxHDF5RawInputDetail(
   rh.reconstitutes<raw::RDTimeStamp, art::InEvent>(pretend_module_name, "trigger");
 }
 
-void raw::VDColdboxHDF5RawInputDetail::readFile(
+void dune::HDF5RawInputDetail::readFile(
     std::string const & filename, art::FileBlock*& fb) {
-  hdf_file_ = dune::VDColdboxHDF5Utils::openFile(filename);
+  hdf_file_ = dune::HDF5Utils::openFile(filename);
   unprocessedEventList_
-      = dune::VDColdboxHDF5Utils::getTopLevelGroupNames(hdf_file_);
-  MF_LOG_INFO("VDColdboxHDF5")
-      << "VDColdboxHDF5 opened HDF file with run number " <<
+      = dune::HDF5Utils::getTopLevelGroupNames(hdf_file_);
+  MF_LOG_INFO("HDF5")
+      << "HDF5 opened HDF file with run number " <<
          hdf_file_->runNumber  << " and " <<
          unprocessedEventList_.size() << " events";
   for (const auto & e : unprocessedEventList_)
-    MF_LOG_INFO("VDColdboxHDF5") << e;
+    MF_LOG_INFO("HDF5") << e;
 
   fb = new art::FileBlock(art::FileFormatVersion(1, "RawEvent2011"),
                           filename); 
 }
 
-bool raw::VDColdboxHDF5RawInputDetail::readNext(art::RunPrincipal const* const inR,
+bool dune::HDF5RawInputDetail::readNext(art::RunPrincipal const* const inR,
                                                 art::SubRunPrincipal const* const inSR,
                                                 art::RunPrincipal*& outR,
                                                 art::SubRunPrincipal*& outSR,
                                                 art::EventPrincipal*& outE) 
 {
-  using namespace dune::VDColdboxHDF5Utils;
+  using namespace dune::HDF5Utils;
   
   // Establish default 'results'
   outR = 0;
@@ -87,7 +77,7 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(art::RunPrincipal const* const i
     std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
                  std::endl;
   }
-   MF_LOG_INFO("VDColdboxHDF5") << "header_info.trigTimestamp :" << header_info.trigTimestamp << std::endl;
+   MF_LOG_INFO("HDF5") << "header_info.trigTimestamp :" << header_info.trigTimestamp << std::endl;
 
    // trigTimeStamp is NOT time but Clock-tick since the epoch.
    uint64_t trigTimeStamp = header_info.trigTimestamp;
@@ -125,8 +115,8 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(art::RunPrincipal const* const i
   outE = pmaker.makeEventPrincipal(run_id, 1, event, artTrigStamp);
   //std::cout << "Event Time Stamp :" << event.time() << std::endl;
  
-  std::unique_ptr<DUNEHDF5FileInfo> the_info(
-      new DUNEHDF5FileInfo(hdf_file_->fileName, hdf_file_->filePtr,
+  std::unique_ptr<raw::DUNEHDF5FileInfo> the_info(
+      new raw::DUNEHDF5FileInfo(hdf_file_->fileName, hdf_file_->filePtr,
                            0, nextEventGroupName));
 
   put_product_in_principal(std::move(the_info), *outE, pretend_module_name,
@@ -138,9 +128,9 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(art::RunPrincipal const* const i
 }
 
 //typedef for shorthand
-namespace raw {
-using VDColdboxHDF5RawInputSource = art::Source<VDColdboxHDF5RawInputDetail>;
+namespace dune {
+using HDF5RawInputSource = art::Source<HDF5RawInputDetail>;
 }
 
 
-DEFINE_ART_INPUT_SOURCE(raw::VDColdboxHDF5RawInputSource)
+DEFINE_ART_INPUT_SOURCE(dune::HDF5RawInputSource)
