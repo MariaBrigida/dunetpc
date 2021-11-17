@@ -2,8 +2,8 @@
 
 services.Geometry: @local::dunevdcb_geo
 
-services.ColorDrawingOptions.RawQHigh: [100]
-services.ColorDrawingOptions.RawQLow:  [-50]
+services.ColorDrawingOptions.RawQHigh: [120]
+services.ColorDrawingOptions.RawQLow:  [-120]
 services.RawDrawingOptions.RawDataLabels: ["tpcrawdecoder:daq"]
 services.RawDrawingOptions.PedestalOption: 1
 services.RawDrawingOptions.MinimumSignal: 5.0
