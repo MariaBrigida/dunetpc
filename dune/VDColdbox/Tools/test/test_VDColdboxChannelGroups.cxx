@@ -1,9 +1,9 @@
-// test_VDColdboxChannelRanges.cxx
+// test_VDColdboxChannelGroups.cxx
 //
 // David Adams
 // May 2018
 //
-// Test VDColdboxChannelRanges.
+// Test VDColdboxChannelGroups.
 
 #include <string>
 #include <iostream>
@@ -11,7 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
 #include "TH1F.h"
 
 #undef NDEBUG
@@ -24,16 +24,22 @@ using std::ofstream;
 using std::istringstream;
 using std::ostringstream;
 using std::setw;
+using std::vector;
 using fhicl::ParameterSet;
 using Index = IndexRange::Index;
 using IndexVector = std::vector<Index>;
 
-Index checkran(const IndexRangeTool& rm, string sran, Index nexp =0, bool chkvalid =true) {
+Index checkran(const IndexRangeGroupTool& rm, string sgrp, Index nexp =0, bool chkvalid =true) {
   const string myname = "checkran: ";
-  IndexRange ran = rm.get(sran);
+  IndexRangeGroup grp = rm.get(sgrp);
+  if ( grp.size() != 1 ) {
+    cout << myname << "Unable to find group " << sgrp << endl;
+    assert(false);
+  }
+  IndexRange ran = grp.range(0);
   if ( ran.isValid() ) cout << ran << endl;
   if ( chkvalid && ! ran.isValid() ) {
-    cout << myname << "Unable to find range " << sran << endl;
+    cout << myname << "Invalid range in  " << sgrp << endl;
     assert(false);
   }
   if ( nexp ) assert( ran.size() == nexp );
@@ -42,8 +48,8 @@ Index checkran(const IndexRangeTool& rm, string sran, Index nexp =0, bool chkval
   
 //**********************************************************************
 
-int test_VDColdboxChannelRanges(bool useExistingFcl =false) {
-  const string myname = "test_VDColdboxChannelRanges: ";
+int test_VDColdboxChannelGroups(bool useExistingFcl =false) {
+  const string myname = "test_VDColdboxChannelGroups: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -51,17 +57,21 @@ int test_VDColdboxChannelRanges(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_VDColdboxChannelRanges.fcl";
+  string fclfile = "test_VDColdboxChannelGroups.fcl";
   if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
   } else {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
+    fout << "  channelRanges: {" << endl;
     fout << "    tool_type: VDColdboxChannelRanges" << endl;
     fout << "    LogLevel: 1" << endl;
     fout << "    GhostRange: [3200, 3392]" << endl;
+    fout << "  }" << endl;
+    fout << "  mytool: {" << endl;
+    fout << "    tool_type: VDColdboxChannelGroups" << endl;
+    fout << "    LogLevel: 1" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -73,11 +83,11 @@ int test_VDColdboxChannelRanges(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() == 2 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto cma = tm.getPrivate<IndexRangeTool>("mytool");
+  auto cma = tm.getPrivate<IndexRangeGroupTool>("mytool");
   assert( cma != nullptr );
 
   cout << myname << line << endl;
@@ -128,10 +138,16 @@ int test_VDColdboxChannelRanges(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Check each FEMB." << endl;
   Index ntot = 0;
+  vector<vector<string>> fmbPlanes(14);
+  for ( Index ifmb=1; ifmb<=11; ++ifmb ) fmbPlanes[ifmb].push_back("u");
+  for ( Index ifmb=1; ifmb<=4; ++ifmb ) fmbPlanes[ifmb].push_back("y");
+  for ( Index ifmb=11; ifmb<=13; ++ifmb ) fmbPlanes[ifmb].push_back("y");
+  for ( Index ifmb=4; ifmb<=11; ++ifmb ) fmbPlanes[ifmb].push_back("z");
+    
   for ( Index ifmb=1; ifmb<=13; ++ifmb ) {
     string sbas = string("femb") + (ifmb<10 ? "0" : "") + std::to_string(ifmb);
     Index nchf = 0;
-    for ( string spla : {"u", "y", "z"} ) {
+    for ( string spla : fmbPlanes[ifmb] ) {
       nchf += checkran(*cma, sbas + spla, 0, false);
     }
     cout << "*** " << sbas << " count is " << nchf << endl;
@@ -160,7 +176,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_VDColdboxChannelRanges(useExistingFcl);
+  return test_VDColdboxChannelGroups(useExistingFcl);
 }
 
 //**********************************************************************

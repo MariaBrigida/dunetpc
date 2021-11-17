@@ -1,38 +1,42 @@
 #include "VDColdboxChannelGroups.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include <string>
+#include <iostream>
+
+using std::string;
+using std::cout;
+using std::endl;
+
+//**********************************************************************
 
 VDColdboxChannelGroups::VDColdboxChannelGroups(fhicl::ParameterSet const& ps)
-  : m_LogLevel(ps.get<int>("LogLevel", 0)) { }
+: m_LogLevel(ps.get<int>("LogLevel")) { }
 
-IndexRangeGroup VDColdboxChannelGroups::get(std::string group_name) const {
-  std::cout << "VDColdboxChannelGroups::get: " <<
-               "attempting to return range group for " << group_name <<
-               std::endl;
-  std::vector<IndexRange> ranges;
+//**********************************************************************
 
-  if (atoi(&group_name[3]) == 1) {
-    std::cout << "VDColdboxChannelGroups::get: " <<
-                 "Apa 0" << std::endl;
-    ranges.push_back(IndexRange("apa1", 1600, 3200));
+IndexRangeGroup VDColdboxChannelGroups::get(std::string gnam) const {
+  const string myname = "VDColdboxChannelGroups::get: ";
+  // No groups found. Try range instead.
+  DuneToolManager* ptm = DuneToolManager::instance();
+  if ( ptm == nullptr ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "ERROR: Tool manager not found." << endl;
+    return IndexRangeGroup();
   }
-
-  if (group_name.find("dcc") != std::string::npos) {
-    if (group_name.find("3456") != std::string::npos) {
-      std::cout << "VDColdboxChannelGroups::get: " <<
-                   "Ghost channels 3456" << std::endl;
-      ranges.push_back(IndexRange("apa1_dcc3456", 3456, 3648));
-    }
-    else {
-      std::cout << "VDColdboxChannelGroups::get: " <<
-                   "Ghost channels 3456" << std::endl;
-      ranges.push_back(IndexRange("apa1_dcc0", 0, 192));
-    }
+  string crtName = "channelRanges";
+  IndexRangeTool* prt = ptm->getShared<IndexRangeTool>(crtName);
+  if ( prt == nullptr ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "ERROR: Channel range tool not found: " << crtName << endl;
+    return IndexRangeGroup();
   }
-  
-  std::cout << "VDColdboxChannelGroups::get: " <<
-               "Group size: " << ranges.size() << std::endl;
-  return IndexRangeGroup(group_name, ranges);
+  IndexRange ran = prt->get(gnam);
+  if ( ! ran.isValid() ) {
+    if ( m_LogLevel >= 2 ) cout << myname << "Range not found: " << gnam << endl;
+    return IndexRangeGroup();
+  }
+  return IndexRangeGroup(ran);
 }
+
+//**********************************************************************
 
 DEFINE_ART_CLASS_TOOL(VDColdboxChannelGroups)
