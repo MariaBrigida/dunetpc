@@ -71,12 +71,9 @@ physics.producers.caldata.OnlineChannelMapTool: ""
 services.RawDigitPrepService.ToolNames: [
   digitReader,                       # Unpack the digits acd.raw[] and acd.pedestal
   adcSampleFiller,                   # Fill acd.samples from acd.raw - pedestal
-  vdct_adcChannelPedestalPlotter,    # Plot pedestals
-  vdct_adcChannelRawRmsPlotter,      # Plot ADC-pedestal RMS
   #adcScaleAdcToKe,
   adcKeepAllSignalFinder             # Flag all samples as signal, i.e. acd.signal[] = true
 ]
 
-tools.vdct_adcChannelRawRmsPlotter.MetricMax: 20
 # this is at warm, but just as a palce holder ...
 #tools.adcScaleAdcToKe.ScaleFactor: 0.038 # ke/ADC/ticks 
