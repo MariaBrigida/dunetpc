@@ -11,6 +11,8 @@
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
 #include <map>
 
+class IndexRangeTool;
+
 class VDColdboxChannelGroups : public IndexRangeGroupTool {
 
 public:
@@ -28,7 +30,15 @@ private:
 
   // Configuration parameters.
   int m_LogLevel;
-  
+
+  // Derived paramters.
+  IndexRangeTool* m_pcrt =nullptr;
+
+  // Create a group from range names.
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
+  IndexRangeGroup makeGroup(Name nam, NameVector rnams, Name lab) const;
+
 };
 
 
