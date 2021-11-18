@@ -1,5 +1,5 @@
-#ifndef VDColdboxHDF5Utils_h
-#define VDColdboxHDF5Utils_h
+#ifndef HDF5Utils_h
+#define HDF5Utils_h
 
 //#include "artdaq-core/Data/Fragment.hh"
 
@@ -16,7 +16,7 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 
 namespace dune {
-namespace VDColdboxHDF5Utils {
+namespace HDF5Utils {
 
 using dunedaq::daqdataformats::Fragment;
 using dunedaq::daqdataformats::FragmentHeader;
@@ -56,9 +56,7 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
 
 typedef std::vector<Fragment> Fragments;
 typedef std::map<std::string, std::unique_ptr<Fragments>> FragmentListsByType;
- void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan);
-void getFragmentsForEvent(hid_t hdf_file, const std::string & group_name,
-                          RawDigits& raw_digits, RDTimeStamps &timestamps, int maxchan);
+//void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan);
 void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
                     float &sigma);
 }

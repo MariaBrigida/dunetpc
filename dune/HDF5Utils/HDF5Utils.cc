@@ -1,17 +1,17 @@
-#include "VDColdboxHDF5Utils.h"
+#include "HDF5Utils.h"
 #include <cstring>
 #include <iostream>
 #include "detdataformats/wib/WIBFrame.hpp"
-#include "dune/VDColdbox/ChannelMap/VDColdboxChannelMapService.h"
+//#include "dune/VDColdbox/ChannelMap/VDColdboxChannelMapService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include <algorithm>
 #include "TMath.h"
 
 namespace dune {
-namespace VDColdboxHDF5Utils {
+namespace HDF5Utils {
 
-using dunedaq::detdataformats::WIBFrame;
-using dunedaq::detdataformats::WIBHeader;
+/*using dunedaq::detdataformats::WIBFrame;
+using dunedaq::detdataformats::WIBHeader;*/
 
 HDFFileInfoPtr openFile(const std::string& fileName) {
   HDFFileInfoPtr hdfFileInfoPtr(new HDFFileInfo());
@@ -166,6 +166,7 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
 
 // This is designed to read 1APA/CRU, only for VDColdBox data. The function uses "apano", handed by DataPrep,
 // as an argument.
+/*
 void getFragmentsForEvent(hid_t the_group, RawDigits& raw_digits, RDTimeStamps &timestamps, int apano, int maxchan)  {
   art::ServiceHandle<dune::VDColdboxChannelMapService> channelMap;
   
@@ -273,5 +274,6 @@ void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
   }
   
 }
+*/
 }
 }

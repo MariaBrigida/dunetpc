@@ -1,28 +1,21 @@
+# 
+# Example fcl to configure and run the 
+# decoder for coldbox TDE data
+#
+# Vyacheslav Galymov
+# November, 2021
+#
+
+#include "vdct_decoder.fcl"
+
 process_name: VDColdboxTDEDAQ
 
 services:
 {
-   # message:              @local::dune_message_services_prod
-   VDColdboxTDEChannelMapService:
-   {
-      MapName: "vdcb1crp"
-      LogLevel: 1
-   }
+   OnlineChannelMapService:    @local::vdct_channelmap
 }
 
-source:
-{
-  module_type: VDColdboxTDERawInput
-  maxEvents: -1
-  fileNames: [ "np02rawdata.dat" ]
-  LogLevel: 1 
-  SamplesPerChannel:    10000
-  OutputLabelRawDigits: "daq"
-  OutputLabelRDTime:    "timingrawdecoder:daq"
-  OutputLabelRDStatus:  "daq"
-  InvertBaseline: [[0, 2048]]
-  SelectCRPs: []
-}
+source: @local::vdctdecoder_source
 
 outputs:
 {
