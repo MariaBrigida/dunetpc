@@ -1,46 +1,16 @@
-#art_make_library(LIBRARY_NAME VDColdboxHDF5Utils
-#         SOURCE VDColdboxHDF5Utils.cc
-#         LIBRARIES
-#         #artdaq-core_Data
-#         #artdaq-core_Utilities
-#         #${ARTDAQ_DAQDATA}
-#         ${CETLIB_EXCEPT}
-#         ${Boost_SYSTEM_LIBRARY}
-#         ${FHICLCPP}
-#         ${MF_MESSAGELOGGER}
-#         ${MF_MESSAGEUTILITIES}
-#         #${RCEDAMLIB}
-#         ${GALLERY_LIB}
-#         ${ART_LIB}
-#         lardataobj_RawData
-#         art_Framework_Principal
-#         dune_VDColdbox_ChannelMap_VDColdboxChannelMapService_service 
-#         ART_FRAMEWORK_CORE
-#         ART_FRAMEWORK_PRINCIPAL
-#         ART_FRAMEWORK_SERVICES_REGISTRY
-#         LIBHDF5 
-#         pthread
-#         z
-#)
-
-#simple_plugin(VDColdboxHDF5RawInput "source"
-#  dune_raw_data::dune-raw-data_Overlays
-#  VDColdboxHDF5Utils
-#  art_Framework_Services_Registry
-#)
 
 cet_build_plugin(VDColdboxDataInterface   art::tool
-				     art_utilities
-				     canvas
-				     cetlib
-				     cetlib_except
+                                     art_utilities
+                                     canvas
+                                     cetlib
+                                     cetlib_except
                         lardataobj_RawData
                         dune_raw_data::dune-raw-data_Overlays
-			artdaq_core::artdaq-core_Data
-			artdaq-core_Utilities
+                        artdaq_core::artdaq-core_Data
+                        artdaq-core_Utilities
                         dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         HDF5Utils
-                        dune_VDColdbox_ChannelMap_VDColdboxChannelMapService_service 
+                        dune_Coldbox_vd_ChannelMap_VDColdboxChannelMapService_service
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
@@ -55,8 +25,9 @@ cet_build_plugin(VDColdboxDataInterface   art::tool
                         z
              )
 
+
 simple_plugin(VDColdboxTDERawInput "source"
-  dune_VDColdbox_ChannelMap_VDColdboxTDEChannelMapService_service 
+  dune_Coldbox_vd_ChannelMap_VDColdboxTDEChannelMapService_service
   art_Framework_Services_Registry
   art_utilities
   canvas
@@ -92,7 +63,31 @@ cet_build_plugin(VDColdboxPDSDecoder art::module
                  BASENAME_ONLY
 )
 
+
+
+add_subdirectory(ChannelMap)
+add_subdirectory(fcl)
+add_subdirectory(Tools)
+
 install_headers()
 install_fhicl()
 install_source()
 install_scripts()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

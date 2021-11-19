@@ -16,7 +16,7 @@
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include "dune/HDF5Utils/HDF5Utils.h"
 #include "detdataformats/wib/WIBFrame.hpp"
-#include "dune/Coldbox/ChannelMap/VDColdboxChannelMapService.h"
+#include "dune/Coldbox//vd/ChannelMap/VDColdboxChannelMapService.h"
 
 
 //The file handle is from the raw::DUNEHDF5FileInfo data product that the source puts into the event. Art's getHandle<type> is usedto retrieve a data product from the event.  
@@ -236,6 +236,8 @@ int VDColdboxDataInterface::retrieveDataAPAListWithLabels(
     std::vector<int> &apalist) {
   return 0;
 }
+
+
 // This is designed to read 1APA/CRU, only for VDColdBox data. The function uses "apano", handed by DataPrep,
 // as an argument.
 void VDColdboxDataInterface::getFragmentsForEvent(
@@ -320,6 +322,7 @@ void VDColdboxDataInterface::getFragmentsForEvent(
     }
   
 }
+
 
 void VDColdboxDataInterface::getMedianSigma(
     const raw::RawDigit::ADCvector_t &v_adc, float &median,
