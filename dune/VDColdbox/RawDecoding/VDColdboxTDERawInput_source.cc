@@ -15,8 +15,8 @@
 // DUNE includes
 #include "dune/DuneObj/RDStatus.h"
 
-#include "dune/Coldbox/vd/VDColdboxTDERawInput.h"
-#include "dune/Coldbox/ChannelMap/VDColdboxTDEChannelMapService.h"
+#include "dune/VDColdbox/RawDecoding/VDColdboxTDERawInput.h"
+#include "dune/VDColdbox/ChannelMap/VDColdboxTDEChannelMapService.h"
 
 #include <exception>
 #include <thread>
