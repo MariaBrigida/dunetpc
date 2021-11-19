@@ -9,7 +9,7 @@ using Name = VDColdboxChannelRanges::Name;
 using Index = VDColdboxChannelRanges::Index;
 
 VDColdboxChannelRanges::VDColdboxChannelRanges(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel", 0)),
+: m_LogLevel(ps.get<int>("LogLevel")),
   m_GhostRange(ps.get<IndexVector>("GhostRange")),
   m_glo(0), m_ghi(0) {
   const string myname = "VDColdboxChannelRanges::ctor: ";
