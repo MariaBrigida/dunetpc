@@ -14,7 +14,7 @@ cet_build_plugin(VDColdboxChannelGroups  art::tool
 
 
 cet_build_plugin(VDColdboxOnlineChannel  art::tool
-                dune_VDColdbox_ChannelMap_VDColdboxChannelMapService_service
+                dune_Coldbox_vd_ChannelMap_VDColdboxChannelMapService_service
                 dune_ArtSupport
                 ART_FRAMEWORK_SERVICES_REGISTRY
                 art_Utilities canvas
