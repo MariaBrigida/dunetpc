@@ -10,12 +10,12 @@ art_make_library(  LIBRARY_NAME  dune_Calib
 		        SOURCE ${src_files}
 			LIBRARIES
 	                wda
-	                nuevdb_IFDatabase
-                        cetlib cetlib_except
+	                nuevdb::IFDatabase
+                        cetlib::cetlib cetlib_except
                         messagefacility::MF_MessageLogger
-			FHICLCPP
+			fhiclcpp::fhiclcpp
                         ROOT_BASIC_LIB_LIST
-			${Boost_SYSTEM_LIBRARY}
+			
         )
  
 art_make_exec( NAME getXYZCalibProtoDUNE
