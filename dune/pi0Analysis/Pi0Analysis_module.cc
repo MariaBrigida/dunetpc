@@ -76,14 +76,15 @@ public:
 private:
 
   TTree *fEventTree;
-  TTree *fPi0Tree;
 
   unsigned int fEventID;
   unsigned int fRunID;
   unsigned int fSubRunID;
+  unsigned int fGlobalEventID;
 
   //MC particles vectors
-  std::vector<int> fMCParticleNHits, fMCParticleTrackID, fMCParticlePdgCode;
+  std::vector<int> fMCParticleNHits, fMCParticleNHitsU, fMCParticleNHitsV, fMCParticleNHitsW;
+  std::vector<int> fMCParticleTrackID, fMCParticleMotherID, fMCParticleMotherPosition, fMCParticleMotherPdgCode, fMCParticlePdgCode;
   std::vector<double> fMCParticleMass, fMCParticleEnergy, fMCParticleStartMomentumX, fMCParticleStartMomentumY, fMCParticleStartMomentumZ;
   std::vector<double> fMCParticleEndMomentumX, fMCParticleEndMomentumY, fMCParticleEndMomentumZ;
   std::vector<double> fMCParticleVertexX, fMCParticleVertexY, fMCParticleVertexZ;
@@ -105,15 +106,12 @@ private:
   art::Handle<std::vector<recob::Hit>> fHitHandle;
   art::Handle<std::vector<simb::MCParticle>> fMcParticles;
 
-  std::vector<double> fPFPCompleteness, fPFPPurity, fShowerPFPCompleteness, fShowerPFPPurity;
-  std::vector<double> fPFPShowerLength, fPFPShowerOpeningAngle, fPFPShowerNHits;
+  std::vector<double> fPFPCompleteness, fPFPPurity, fPFPShowerCompleteness, fPFPShowerPurity;
+  std::vector<double> fPFPShowerLength, fPFPShowerOpeningAngle, fPFPShowerNHits, fPFPShowerNHitsU, fPFPShowerNHitsV, fPFPShowerNHitsW, fPFPShowerCollectionPlaneEnergy;
+  std::vector<double> fPFPShowerDirectionX, fPFPShowerDirectionY, fPFPShowerDirectionZ; //direction cosines at start of shower
   std::vector<int> fPFPShowerTrueParticleMatchedId, fPFPShowerTrueParticleMatchedPosition, fPFPShowerTrueParticleMatchedPdgCode, fPFPShowerNSharedTrueParticleHits;
+  std::vector<int> fPFPShowerTrueParticleNHits, fPFPShowerTrueParticleNHitsU, fPFPShowerTrueParticleNHitsV, fPFPShowerTrueParticleNHitsW;
   
-  //Pi0 vectors
-  std::vector<int> fPi0Daughter1TrackID, fPi0Daughter2TrackID, fPi0Daughter1Position, fPi0Daughter2Position;
-  std::vector<int> fPi0Daughter1ShowerPfpMatchedPosition, fPi0Daughter2ShowerPfpMatchedPosition;
- 
-
   std::string fTruthLabel;
   std::string fHitLabel;
   std::string fTrackLabel;
@@ -154,6 +152,7 @@ void test::Pi0Analysis::analyze(art::Event const& e)
   // Read event info
   fEventID = e.id().event();
   //std::cout << "fEventID = " << fEventID << std::endl;
+  //std::cout << "------------------------------------------------------" << std::endl;
   fRunID = e.id().run();
   fSubRunID = e.id().subRun();
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
@@ -162,7 +161,7 @@ void test::Pi0Analysis::analyze(art::Event const& e)
   const std::vector<art::Ptr<recob::PFParticle>> pfparticleVect = dune_ana::DUNEAnaEventUtils::GetPFParticles(e,fPFParticleLabel);
   fNPFParticles = pfparticleVect.size();
   if(!fNPFParticles) {
-    std::cout << "No PFParticles found!" << std::endl;
+    //std::cout << "No PFParticles found!" << std::endl;
     return;
   }
   //
@@ -176,6 +175,7 @@ void test::Pi0Analysis::analyze(art::Event const& e)
      test::Pi0Analysis::FillMcParticleVectors();
    }
    /////////////////////////////////////
+  
 
   //Loop over pfps
   int iPfp(0), iShowerPfp(0);
@@ -185,32 +185,77 @@ void test::Pi0Analysis::analyze(art::Event const& e)
       
       art::Ptr<recob::Shower> shower = dune_ana::DUNEAnaPFParticleUtils::GetShower(pfp,e,fPFParticleLabel, fShowerLabel); 
       fPFPShowerLength.push_back(shower->Length());
+      //std::cout << "shower energy size = " << shower->Energy().size() << std::endl;
+      if(shower->Energy().size()==3)fPFPShowerCollectionPlaneEnergy.push_back(shower->Energy().at(2));  //collection plane energy
+      fPFPShowerDirectionX.push_back(shower->Direction().X());
+      fPFPShowerDirectionY.push_back(shower->Direction().Y());
+      fPFPShowerDirectionZ.push_back(shower->Direction().Z());
       fPFPShowerOpeningAngle.push_back(shower->OpenAngle());
       std::vector<art::Ptr<recob::Hit>> pfpShowerHits;
+      int nHitsViewU(0), nHitsViewV(0), nHitsViewW(0);
       pfpShowerHits = dune_ana::DUNEAnaShowerUtils::GetHits(shower,e,fShowerLabel);
+      for(auto hit:pfpShowerHits){
+        if(hit->View()==geo::kU)nHitsViewU++;
+        else if(hit->View()==geo::kV)nHitsViewV++;
+        else if(hit->View()==geo::kW)nHitsViewW++;
+      }
+      fPFPShowerNHitsU.push_back(nHitsViewU);
+      fPFPShowerNHitsV.push_back(nHitsViewV);
+      fPFPShowerNHitsW.push_back(nHitsViewW);
       fPFPShowerNHits.push_back(pfpShowerHits.size());
       
       //Fill MC quantities such as best match true particle G4ID, purity, completeness 
       if(!e.isRealData()) {
         TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpShowerHits,fRollUpUnsavedIDs));
-        fPFPShowerTrueParticleMatchedId.push_back(g4ID);
 	//int pos(999999); for(unsigned int ipos=0; ipos<fNMCParticles; ipos++) {
 	//  if(fMCParticleTrackID[ipos]==g4ID){pos=ipos; /*std::cout << "found pos = " << pos << std::endl;*/} 
           //std::cout << "fMCParticleTrackID[ipos] = " << fMCParticleTrackID[ipos] << std::endl;
  	//}
         //fPFPShowerTrueParticleMatchedPosition.push_back(pos);
         int pos = GetVectorPositionForTrackID(g4ID,fMCParticleTrackID);
-        fPFPShowerTrueParticleMatchedPosition.push_back(pos);
-        const simb::MCParticle trueParticle = fMcParticles->at(pos);
-        int pfpShowerPdgCode = trueParticle.PdgCode();
-        fPFPShowerTrueParticleMatchedPdgCode.push_back(pfpShowerPdgCode);
-        int nSharedPfpShowerHits = test::Pi0Analysis::GetNHitsMatchingG4Id(pfpShowerHits,e,g4ID);
-        fPFPShowerNSharedTrueParticleHits.push_back(nSharedPfpShowerHits);
-        double comp = test::Pi0Analysis::GetPfpCompleteness(iShowerPfp);
-        fShowerPFPCompleteness.push_back(comp);
-        double purity = test::Pi0Analysis::GetPfpPurity(iShowerPfp);
-        fShowerPFPPurity.push_back(purity);
+        if(pos<900000) {
+            fPFPShowerTrueParticleMatchedPosition.push_back(pos);
+            fPFPShowerTrueParticleMatchedId.push_back(g4ID);
+            const simb::MCParticle trueParticle = fMcParticles->at(pos);
+            int pfpShowerPdgCode = trueParticle.PdgCode();
+            fPFPShowerTrueParticleMatchedPdgCode.push_back(pfpShowerPdgCode);
+            fPFPShowerTrueParticleNHits.push_back(fMCParticleNHits.at(pos));
+            fPFPShowerTrueParticleNHitsU.push_back(fMCParticleNHitsU.at(pos));
+            fPFPShowerTrueParticleNHitsV.push_back(fMCParticleNHitsV.at(pos));
+            fPFPShowerTrueParticleNHitsW.push_back(fMCParticleNHitsW.at(pos));
+            int nSharedPfpShowerHits = test::Pi0Analysis::GetNHitsMatchingG4Id(pfpShowerHits,e,g4ID);
+            fPFPShowerNSharedTrueParticleHits.push_back(nSharedPfpShowerHits);
+            double comp = test::Pi0Analysis::GetPfpCompleteness(iShowerPfp);
+            fPFPShowerCompleteness.push_back(comp);
+            double purity = test::Pi0Analysis::GetPfpPurity(iShowerPfp);
+            fPFPShowerPurity.push_back(purity);
+        }
+        else{
+            fPFPShowerTrueParticleMatchedPosition.push_back(999999);
+            fPFPShowerTrueParticleMatchedId.push_back(g4ID);
+            fPFPShowerTrueParticleMatchedPdgCode.push_back(999999);
+            fPFPShowerTrueParticleNHits.push_back(999999);
+            fPFPShowerTrueParticleNHitsU.push_back(999999);
+            fPFPShowerTrueParticleNHitsV.push_back(999999);
+            fPFPShowerTrueParticleNHitsW.push_back(999999);
+            fPFPShowerNSharedTrueParticleHits.push_back(999999);
+            fPFPShowerCompleteness.push_back(999999);
+            fPFPShowerPurity.push_back(999999);
+        }
+        //std::cout << "deb: iShowerPfp = " << fPFPShowerLength.back() << " matched MC position = " << pos << " matched MC PDG code = " << fPFPShowerTrueParticleMatchedPdgCode.back() << " nshared hits = " << fPFPShowerNSharedTrueParticleHits.back() << " completeness = " << fPFPShowerCompleteness.back() << " purity = " << fPFPShowerPurity.back() << std::endl;
         //std::cout << "iPfp = " << iPfp << " iShowerPfp = " << iShowerPfp << " g4ID = " << g4ID << " pos = " << pos << " pdg code = " << pfpShowerPdgCode << " shared hits = " << nSharedPfpShowerHits << " completeness = " << comp << " purity = " << purity << " length = " << shower->Length() << " opening angle = " << shower->OpenAngle() << std::endl;
+      }
+      else{
+            fPFPShowerTrueParticleMatchedPosition.push_back(999999);
+            fPFPShowerTrueParticleMatchedId.push_back(999999);
+            fPFPShowerTrueParticleMatchedPdgCode.push_back(999999);
+            fPFPShowerTrueParticleNHits.push_back(999999);
+            fPFPShowerTrueParticleNHitsU.push_back(999999);
+            fPFPShowerTrueParticleNHitsV.push_back(999999);
+            fPFPShowerTrueParticleNHitsW.push_back(999999);
+            fPFPShowerNSharedTrueParticleHits.push_back(999999);
+            fPFPShowerCompleteness.push_back(999999);
+            fPFPShowerPurity.push_back(999999);
       }
       iShowerPfp++;
     }
@@ -219,124 +264,22 @@ void test::Pi0Analysis::analyze(art::Event const& e)
   }
   fNShowerPFParticles=iShowerPfp;
  
-  //Access the truth information
-  int nPi0s(0);
-  if(!e.isRealData()){
-    if(fMcParticles.isValid()){
-
-     //Loop over MC particles and identify two photons coming from a pi0
-      //bool isMCPrimary(false);
-      //Loop over all MCparticles
-      for(unsigned int iMc=0; iMc< fMcParticles->size(); iMc++){
-        const simb::MCParticle trueParticle = fMcParticles->at(iMc);
-        int trueParticlePdgCode = trueParticle.PdgCode();
-        //trueParticle.Process()=="primary"? isMCPrimary=true:isMCPrimary=false;
-        //If it's a photon, fill photon plots////////////////////////////////
-         
-
-          //If a pi0 is found
-	  if(trueParticlePdgCode==111) {
-            nPi0s++;
-            std::cout << "--------------->Found a pi0<---------------" << std::endl;
-            //fNReconstructedPhotons=0; std::vector<TVector3> photon1Direction, photon2Direction, photon1Start, photon2Start;
-            std::cout << "N pi0 daughters = " << trueParticle.NumberDaughters() << std::endl;
-            for(int iDaughter=0; iDaughter<trueParticle.NumberDaughters(); iDaughter++){
-              int daughterID = trueParticle.Daughter(iDaughter);
-              int daughterPosition = GetVectorPositionForTrackID(daughterID,fMCParticleTrackID);
-              int daughterMatchedPfpPosition = GetVectorPositionForTrackID(daughterID,fPFPShowerTrueParticleMatchedId);
-              if(iDaughter==0) {
-                fPi0Daughter1TrackID.push_back(daughterID);
-                fPi0Daughter1Position.push_back(daughterPosition);
-                fPi0Daughter1ShowerPfpMatchedPosition.push_back(daughterMatchedPfpPosition);
-                std::cout << "debug pi0 daughter 0: trackID/position/pfp position: " << daughterID << "/" << daughterPosition << "/" << daughterMatchedPfpPosition << std::endl;
-              }
-              else if(iDaughter==1){
-                fPi0Daughter2TrackID.push_back(daughterID);
-                fPi0Daughter2Position.push_back(daughterPosition);
-                fPi0Daughter2ShowerPfpMatchedPosition.push_back(daughterMatchedPfpPosition);
-                std::cout << "debug pi0 daughter 1: trackID/position/pfp position: " << daughterID << "/" << daughterPosition << "/" << daughterMatchedPfpPosition << std::endl;
-              }
-              //int daughterID = trueParticle.Daughter(iDaughter);
-              //std::cout << "daughter n. " << iDaughter << " = " << daughterID <<std::endl;
-    	    /*  std::vector<art::Ptr<recob::Hit>> pfpHits;
-              for(const art::Ptr<recob::PFParticle> &pfp: pfparticleVect){
-                if(dune_ana::DUNEAnaPFParticleUtils::IsShower(pfp,e,fPFParticleLabel,fShowerLabel)){
-                  art::Ptr<recob::Shower> shower = dune_ana::DUNEAnaPFParticleUtils::GetShower(pfp,e,fPFParticleLabel, fShowerLabel); 
-                  pfpHits = dune_ana::DUNEAnaShowerUtils::GetHits(shower,e,fShowerLabel);
-                //Find if there is a reco particle that matches best this photon
-    		  std::vector<art::Ptr<recob::Hit>> pfpHits;
-      		  pfpHits = dune_ana::DUNEAnaShowerUtils::GetHits(shower,e,fShowerLabel);
-        	  TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpHits,fRollUpUnsavedIDs));
-		  if(g4ID==daughterID) {
-                    std::cout << "Found a reco particle that matches photon with ID = " << daughterID << std::endl;
-                    if (test::Pi0Analysis::photonIsReconstructable(g4ID)){
-		    //if(pfpHits.size()>fNMinimumShowerHits){
-                      if(daughterID==0){photon1Direction.push_back(shower->Direction()); photon1Start.push_back(shower->ShowerStart());}
-                      if(daughterID==1){photon2Direction.push_back(shower->Direction()); photon2Start.push_back(shower->ShowerStart());}
-                    }
-                    fNReconstructedPhotons++;
-                  }
-		}
-	      }
-
-            }
-	      //Loop over pairs of shower directions for this pi0
-	      for(long unsigned int iShower1=0; iShower1<photon1Direction.size(); iShower1++){
-	        for(long unsigned int iShower2=0; iShower2<photon2Direction.size(); iShower2++){
-		  TVector3 closestApproachPoint =  test::Pi0Analysis::centerOfClosestApproachPoint(photon1Start.at(iShower1),photon1Direction.at(iShower1),photon2Start.at(iShower2),photon2Direction.at(iShower2));
-	          std::cout << "TEST: middle point of closest approach between shower directions = " << closestApproachPoint.X() << " " << closestApproachPoint.Y() << " " << closestApproachPoint.Z()  << std::endl;
-                  fPhotonPairDistCenterToMCStart= (closestApproachPoint-trueParticle.Position().Vect()).Mag();
-		  std::cout << "fPhotonPairDistCenterToMCStart = " << fPhotonPairDistCenterToMCStart << std::endl;
-	        }
-	      }
-
-	    if(fNReconstructedPhotons==2){
-            }
-	    fPi0Tree->Fill();
-         */   
-          }
-	  fPi0Tree->Fill();
-	}
-	/*if(trueParticlePdgCode==111) {
-          double pi0VertexX = trueParticle.Position().X();
-          double pi0VertexY = trueParticle.Position().Y();
-          double pi0VertexZ = trueParticle.Position().Z();
-          //Check if there is any particle with vertex close to pi0 vertex
-          for(const art::Ptr<recob::PFParticle> &pfp: pfparticleVect){
-            if(dune_ana::DUNEAnaPFParticleUtils::IsShower(pfp,e,fPFParticleLabel,fShowerLabel)){
-              art::Ptr<recob::Shower> shower = dune_ana::DUNEAnaPFParticleUtils::GetShower(pfp,e,fPFParticleLabel, fShowerLabel); 
-              //double showerStartX = shower->ShowerStart().X();
-              //double showerStartY = shower->ShowerStart().Y();
-              //double showerStartZ = shower->ShowerStart().Z();
-              (trueParticle.Position().Vect()-shower->ShowerStart().Vect()).Mag();
-            }
-	  }
-          std::cout << "--------------->Found a pi0<---------------" << std::endl;
-          std::cout << "pi0VertexX = " << pi0VertexX << "pi0VertexY = " << pi0VertexY << " pi0VertexZ = " << pi0VertexZ << std::endl;
-          std::cout << "trueParticle.PdgCode() = " << trueParticle.PdgCode() << " is primary? " << isMCPrimary << std::endl;
-          std::cout << "Start momentum: " << trueParticle.Momentum().X() << " " << trueParticle.Momentum().Y() << " " << trueParticle.Momentum().Z() << " " << std::endl;
-          //std::cout << "End momentum: " << trueParticle.EndMomentum().X() << " " << trueParticle.EndMomentum().Y() << " " << trueParticle.EndMomentum().Z() << " " << std::endl;
-          
-        }*/
-
-      }
-    }
-  }
-  //std::cout << "fNMCPi0s = " << fNMCPi0s << std::endl;
-  fNMCPi0s=nPi0s;
   fEventTree->Fill();
+  fGlobalEventID++;
 }
 
 void test::Pi0Analysis::beginJob()
 {
+  fGlobalEventID = 0;
   // Implementation of optional member function here.
   
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
   fEventTree = tfs->make<TTree>("Event","Event Tree");
-  fPi0Tree = tfs->make<TTree>("Pi0","Pi0 Tree");
+  //fPi0Tree = tfs->make<TTree>("Pi0","Pi0 Tree");
 
   //Event tree
+  fEventTree->Branch("globalEventID",&fGlobalEventID,"globalEventID/i");
   fEventTree->Branch("eventID",&fEventID,"eventID/i");
   fEventTree->Branch("runID",&fRunID,"runID/i");
   fEventTree->Branch("subrunID",&fSubRunID,"subrunID/i");
@@ -344,6 +287,11 @@ void test::Pi0Analysis::beginJob()
   fEventTree->Branch("nPFParticles",&fNPFParticles,"nPFParticles/i");
 
   ////MC particle branches
+  fEventTree->Branch("mcParticleTrackID", &fMCParticleTrackID);
+  fEventTree->Branch("mcParticleMotherID", &fMCParticleMotherID);
+  fEventTree->Branch("mcParticleMotherPosition", &fMCParticleMotherPosition);
+  fEventTree->Branch("mcParticleMotherPdgCode", &fMCParticleMotherPdgCode);
+  fEventTree->Branch("mcParticlePdgCode",&fMCParticlePdgCode);
   fEventTree->Branch("mcParticleMass",&fMCParticleMass);
   fEventTree->Branch("mcParticleEnergy",&fMCParticleEnergy);
   fEventTree->Branch("mcParticleStartMomentumX",&fMCParticleStartMomentumX);
@@ -361,28 +309,34 @@ void test::Pi0Analysis::beginJob()
 
   fEventTree->Branch("nShowerPFParticles",&fNShowerPFParticles,"nShowerPFParticles/i");
   //fEventTree->Branch("pfpCompleteness",&fPFPCompleteness);
-  fEventTree->Branch("showerPfpCompleteness",&fShowerPFPCompleteness);
+  fEventTree->Branch("showerPfpCompleteness",&fPFPShowerCompleteness);
   //fEventTree->Branch("pfpPurity",&fPFPPurity);
-  fEventTree->Branch("showerPfpPurity",&fShowerPFPPurity);
+  fEventTree->Branch("showerPfpPurity",&fPFPShowerPurity);
 
   fEventTree->Branch("pfpShowerLength",&fPFPShowerLength);
+  fEventTree->Branch("pfpShowerCollectionPlaneEnergy",&fPFPShowerCollectionPlaneEnergy);
+  fEventTree->Branch("pfpShowerDirectionX",&fPFPShowerDirectionX);
+  fEventTree->Branch("pfpShowerDirectionY",&fPFPShowerDirectionY);
+  fEventTree->Branch("pfpShowerDirectionZ",&fPFPShowerDirectionZ);
   fEventTree->Branch("pfpShowerOpeningAngle",&fPFPShowerOpeningAngle);
-  //fEventTree->Branch("pfpShowerTrueParticleMatchedId",&fPFPShowerTrueParticleMatchedId);
-  //fEventTree->Branch("pfpShowerTrueParticleMatchedPdgCode",&fPFPShowerTrueParticleMatchedPdgCode);
+  fEventTree->Branch("pfpShowerTrueParticleMatchedId",&fPFPShowerTrueParticleMatchedId);
+  fEventTree->Branch("pfpShowerTrueParticleMatchedPdgCode",&fPFPShowerTrueParticleMatchedPdgCode);
+  fEventTree->Branch("pfpShowerTrueParticleMatchedPosition",&fPFPShowerTrueParticleMatchedPosition);
+  fEventTree->Branch("pfpShowerTrueParticleNHits",&fPFPShowerTrueParticleNHits);
+  fEventTree->Branch("pfpShowerTrueParticleNHitsU",&fPFPShowerTrueParticleNHitsU);
+  fEventTree->Branch("pfpShowerTrueParticleNHitsV",&fPFPShowerTrueParticleNHitsV);
+  fEventTree->Branch("pfpShowerTrueParticleNHitsW",&fPFPShowerTrueParticleNHitsW);
+  fEventTree->Branch("pfpShowerCompleteness",&fPFPShowerCompleteness);
+  fEventTree->Branch("pfpShowerPurity",&fPFPShowerPurity);
+  fEventTree->Branch("pfpShowerNHits",&fPFPShowerNHits);
+  fEventTree->Branch("pfpShowerNHitsU",&fPFPShowerNHitsU);
+  fEventTree->Branch("pfpShowerNHitsV",&fPFPShowerNHitsV);
+  fEventTree->Branch("pfpShowerNHitsW",&fPFPShowerNHitsW);
 
   fEventTree->Branch("nMCPi0s",&fNMCPi0s,"nMCPi0s/i");
   fEventTree->Branch("nMCPhotons",&fNMCPhotons,"nMCPhotons/i");
   fEventTree->Branch("nReconstructedPhotons",&fNReconstructedPhotons,"nReconstructedPhotons/i");
   fEventTree->Branch("nReconstructedPi0s",&fNReconstructedPi0s,"nReconstructedPi0s/i");
-
-  //Pi0 tree
-  fPi0Tree->Branch("nPhotonPairDistCenterToMCStart",&fPhotonPairDistCenterToMCStart,"nReconstructedPhotons/D");
-  fPi0Tree->Branch("pi0Daughter1TrackID", &fPi0Daughter1TrackID);
-  fPi0Tree->Branch("pi0Daughter2TrackID", &fPi0Daughter2TrackID);
-  fPi0Tree->Branch("pi0Daughter1Position", &fPi0Daughter1Position);
-  fPi0Tree->Branch("pi0Daughter2Position", &fPi0Daughter2Position);
-  fPi0Tree->Branch("pi0Daughter1ShowerPfpMatchedPosition", &fPi0Daughter1ShowerPfpMatchedPosition);
-  fPi0Tree->Branch("pi0Daughter2ShowerPfpMatchedPosition", &fPi0Daughter2ShowerPfpMatchedPosition);
 
 }
 
@@ -442,7 +396,19 @@ void test::Pi0Analysis::FillMcParticleVectors(){
      for(unsigned int iMc=0; iMc<fMcParticles->size(); iMc++){
         const simb::MCParticle trueParticle = fMcParticles->at(iMc);
         fMCParticleTrackID.push_back(trueParticle.TrackId());
+        fMCParticleMotherID.push_back(trueParticle.Mother());
+        //if(fMCParticleMotherID.back()==0)std::cout << "debug iMc = " << iMc << " track ID = " << fMCParticleTrackID.back() << " mother ID = " << fMCParticleMotherID.back() << std::endl;
+        //if(fMCParticleMotherID.back()==0)std::cout << "mother position is = " << motherPosition << std::endl;
         fMCParticleNHits.push_back(fTrueParticleHits[trueParticle.TrackId()].size());
+        int nHitsU(0), nHitsV(0), nHitsW(0);
+        for(auto hit : fTrueParticleHits[trueParticle.TrackId()]){
+	  if(hit->View()==geo::kU) nHitsU++; 
+	  else if(hit->View()==geo::kV) nHitsV++; 
+	  else if(hit->View()==geo::kW) nHitsW++; 
+        }
+        fMCParticleNHitsU.push_back(nHitsU);
+        fMCParticleNHitsV.push_back(nHitsV);
+        fMCParticleNHitsW.push_back(nHitsW);
         fMCParticlePdgCode.push_back(trueParticle.PdgCode());
         fMCParticleMass.push_back(trueParticle.Mass());
         fMCParticleEnergy.push_back(trueParticle.E());
@@ -458,7 +424,25 @@ void test::Pi0Analysis::FillMcParticleVectors(){
         fMCParticleEndX.push_back(trueParticle.EndX());
         fMCParticleEndY.push_back(trueParticle.EndY());
         fMCParticleEndZ.push_back(trueParticle.EndZ());
+        auto it = find(fMCParticleTrackID.begin(), fMCParticleTrackID.end(), trueParticle.Mother());
+        //if(it != fMCParticleTrackID.end()) std::cout << "mother position is = " << it - fMCParticleTrackID.begin() << std::endl;
+        //if (it == fMCParticleTrackID.end() && trueParticle.Mother()!=0) std::cout << "cannot find mother" << std::endl;
+        int motherPosition(999999), motherPdgCode(999999);
+        if(it != fMCParticleTrackID.end())  {
+          motherPosition = it - fMCParticleTrackID.begin();
+          motherPdgCode = fMCParticlePdgCode.at(motherPosition);
+        }
+        fMCParticleMotherPosition.push_back(motherPosition);
+        fMCParticleMotherPdgCode.push_back(motherPdgCode);
+        //std::cout << "pdg code = " << fMCParticlePdgCode.back() << " motherPosition = " << fMCParticleMotherPosition.back() << " mother pdg code = " << fMCParticleMotherPdgCode.back() << std::endl;
+        //if(fMCParticleMotherPdgCode.back()==111)std::cout << "iMc = " << iMc << " pdg code = " << fMCParticlePdgCode.back() << " motherPosition = " << fMCParticleMotherPosition.back() << std::endl;
+        //if(fMCParticleMotherPdgCode.back()==111) std::cout << "pdg: " << trueParticle.PdgCode() << " energy: " << trueParticle.E() << "mom: " << trueParticle.Px() << " " << trueParticle.Py() << " " << trueParticle.Pz() << std::endl;
+
      }
+     //Fill mother position and pdg code info 
+     //for(unsigned int iMc=0; iMc<fMcParticles->size(); iMc++){
+     //    
+     //}
 } 
 
 
@@ -492,7 +476,14 @@ double test::Pi0Analysis::GetPfpPurity(int iPfp){
 void test::Pi0Analysis::ClearAllVectors(){
       //MC particle vectors
       fMCParticleNHits.clear();
+      fMCParticleNHitsU.clear();
+      fMCParticleNHitsV.clear();
+      fMCParticleNHitsW.clear();
       fMCParticleTrackID.clear();
+      fMCParticleMotherID.clear();
+      fMCParticleMotherPosition.clear();
+      fMCParticleMotherPdgCode.clear();
+      fMCParticlePdgCode.clear();
       fMCParticleMass.clear();
       fMCParticleEnergy.clear();
       fMCParticleStartMomentumX.clear();
@@ -514,23 +505,28 @@ void test::Pi0Analysis::ClearAllVectors(){
       fTrueParticleHitsView1.clear();
       fTrueParticleHitsView2.clear();
       fPFPCompleteness.clear();
-      fShowerPFPCompleteness.clear();
+      fPFPShowerCompleteness.clear();
       fPFPPurity.clear();
-      fShowerPFPPurity.clear();
+      fPFPShowerPurity.clear();
       fPFPShowerLength.clear();
+      fPFPShowerDirectionX.clear();
+      fPFPShowerDirectionY.clear();
+      fPFPShowerDirectionZ.clear();
+      fPFPShowerCollectionPlaneEnergy.clear();
       fPFPShowerOpeningAngle.clear();
       fPFPShowerNHits.clear();
+      fPFPShowerNHitsU.clear();
+      fPFPShowerNHitsV.clear();
+      fPFPShowerNHitsW.clear();
       fPFPShowerTrueParticleMatchedId.clear();
       fPFPShowerTrueParticleMatchedPosition.clear();
       fPFPShowerTrueParticleMatchedPdgCode.clear();
+      fPFPShowerTrueParticleNHits.clear();
+      fPFPShowerTrueParticleNHitsU.clear();
+      fPFPShowerTrueParticleNHitsV.clear();
+      fPFPShowerTrueParticleNHitsW.clear();
       fPFPShowerNSharedTrueParticleHits.clear();
       //Pi0 vectors
-      fPi0Daughter1TrackID.clear();
-      fPi0Daughter2TrackID.clear();
-      fPi0Daughter1Position.clear();
-      fPi0Daughter2Position.clear();
-      fPi0Daughter1ShowerPfpMatchedPosition.clear();
-      fPi0Daughter2ShowerPfpMatchedPosition.clear();
 
 }
 
