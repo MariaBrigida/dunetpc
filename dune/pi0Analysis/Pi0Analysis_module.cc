@@ -205,8 +205,9 @@ void test::Pi0Analysis::analyze(art::Event const& e)
       fPFPShowerNHits.push_back(pfpShowerHits.size());
       
       //Fill MC quantities such as best match true particle G4ID, purity, completeness 
-      if(!e.isRealData()) {
+      if (!e.isRealData()) {
         TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpShowerHits,fRollUpUnsavedIDs));
+        std::cout << "iPfp = " << iPfp << "/" << pfparticleVect.size() << "  shower TrueParticleIDFromTotalRecoHits = " << g4ID << std::endl;
 	//int pos(999999); for(unsigned int ipos=0; ipos<fNMCParticles; ipos++) {
 	//  if(fMCParticleTrackID[ipos]==g4ID){pos=ipos; /*std::cout << "found pos = " << pos << std::endl;*/} 
           //std::cout << "fMCParticleTrackID[ipos] = " << fMCParticleTrackID[ipos] << std::endl;
@@ -263,7 +264,7 @@ void test::Pi0Analysis::analyze(art::Event const& e)
     iPfp++;
   }
   fNShowerPFParticles=iShowerPfp;
- 
+  std::cout << "DEBUG: fGlobalEventID = " << fGlobalEventID << " fPFPShowerTrueParticleMatchedPosition.size() = " << fPFPShowerTrueParticleMatchedPosition.size() << std::endl; 
   fEventTree->Fill();
   fGlobalEventID++;
 }
@@ -412,6 +413,8 @@ void test::Pi0Analysis::FillMcParticleVectors(){
         fMCParticlePdgCode.push_back(trueParticle.PdgCode());
         fMCParticleMass.push_back(trueParticle.Mass());
         fMCParticleEnergy.push_back(trueParticle.E());
+        //std::cout << "trueParticle.PdgCode() = " << trueParticle.PdgCode() << " trueParticle.E() = " << trueParticle.E() << std::endl;
+        if(trueParticle.PdgCode()==111) std::cout << "pi0! energy = " << trueParticle.E() << " global ev num = " << fGlobalEventID << " ev num = " << fEventID << " fRunID = " << fRunID << " fSubRunID = " << fSubRunID << std::endl;
         fMCParticleStartMomentumX.push_back(trueParticle.Px());
         fMCParticleStartMomentumY.push_back(trueParticle.Py());
         fMCParticleStartMomentumZ.push_back(trueParticle.Pz());
@@ -434,6 +437,7 @@ void test::Pi0Analysis::FillMcParticleVectors(){
         }
         fMCParticleMotherPosition.push_back(motherPosition);
         fMCParticleMotherPdgCode.push_back(motherPdgCode);
+        if(trueParticle.PdgCode()==22 && fMCParticleMotherPdgCode.back()==111) std::cout <<"photon from pi! energy = " << trueParticle.E() << std::endl;
         //std::cout << "pdg code = " << fMCParticlePdgCode.back() << " motherPosition = " << fMCParticleMotherPosition.back() << " mother pdg code = " << fMCParticleMotherPdgCode.back() << std::endl;
         //if(fMCParticleMotherPdgCode.back()==111)std::cout << "iMc = " << iMc << " pdg code = " << fMCParticlePdgCode.back() << " motherPosition = " << fMCParticleMotherPosition.back() << std::endl;
         //if(fMCParticleMotherPdgCode.back()==111) std::cout << "pdg: " << trueParticle.PdgCode() << " energy: " << trueParticle.E() << "mom: " << trueParticle.Px() << " " << trueParticle.Py() << " " << trueParticle.Pz() << std::endl;

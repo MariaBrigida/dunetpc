@@ -139,6 +139,9 @@ void test::Pi0AnalysisPlots::beginJob()
   //tree->SetBranchAddress("mcParticleVertexX",&mcParticleVertexX, &b_mcParticleVertexX);
  
   unsigned int globalEventID = 0; 
+  unsigned int eventID = 0; 
+  unsigned int runID = 0; 
+  unsigned int subrunID = 0; 
   std::vector<int> *mcParticleTrackID = 0;
   std::vector<int> *mcParticlePdgCode = 0;
   std::vector<int> *mcParticleMotherPdgCode = 0;
@@ -167,7 +170,7 @@ void test::Pi0AnalysisPlots::beginJob()
 
   
   //Define Event tree branches
-  TBranch *b_globalEventID;
+  TBranch *b_globalEventID, *b_eventID, *b_runID, *b_subrunID;
   TBranch *b_mcParticleTrackID, *b_mcParticlePdgCode, *b_mcParticleMotherPdgCode, *b_mcParticleMotherPosition;
   TBranch *b_mcParticleEnergy;
   TBranch *b_mcParticleStartMomentumX, *b_mcParticleStartMomentumY, *b_mcParticleStartMomentumZ;
@@ -175,6 +178,9 @@ void test::Pi0AnalysisPlots::beginJob()
   TBranch *b_pfpShowerTrueParticleNHits, *b_pfpShowerTrueParticleNHitsU, *b_pfpShowerTrueParticleNHitsV, *b_pfpShowerTrueParticleNHitsW;
 
   //Set Event tree branch addresses
+  eventTree->SetBranchAddress("eventID",&eventID, &b_eventID);
+  eventTree->SetBranchAddress("runID",&runID, &b_runID);
+  eventTree->SetBranchAddress("subrunID",&subrunID, &b_subrunID);
   eventTree->SetBranchAddress("globalEventID",&globalEventID, &b_globalEventID);
   eventTree->SetBranchAddress("mcParticleTrackID",&mcParticleTrackID, &b_mcParticleTrackID);
   eventTree->SetBranchAddress("mcParticlePdgCode",&mcParticlePdgCode, &b_mcParticlePdgCode);
@@ -217,14 +223,17 @@ void test::Pi0AnalysisPlots::beginJob()
   std::vector<int> pi0NPhotons;
   std::vector<int> pi0NPhotons_qualityCuts;
 
-  std::cout << "N Tree Entries = " << eventTree->GetEntries() << std::endl;
+  //std::cout << "N Tree Entries = " << eventTree->GetEntries() << std::endl;
+  //int nPhotons(0);
   for(int iEntry=0; iEntry<eventTree->GetEntries(); iEntry++){
     //pi0Pos.clear();
     //pi0NPhotons.clear();
     //pi0NPhotons_qualityCuts.clear();
     eventTree->GetEntry(iEntry);
     //if(globalEventID>20000) break;
-    //std::cout << "global ev number = " << globalEventID << std::endl;
+    //std::cout << "global ev number = " <<  << std::endl;
+    //std::cout << "global event number = " << globalEventID << " event number = " <<eventID << " run number = " << runID << " subrun ID = " << subrunID << std::endl;
+    //std::cout << " pfpShowerTrueParticleMatchedPosition->size() = " << pfpShowerTrueParticleMatchedPosition->size() << " mcParticleTrackID->size() = " << mcParticleTrackID->size() << std::endl;
     
     for(std::vector<int>::size_type iMCPart = 0; iMCPart<mcParticleTrackID->size(); iMCPart++){
       if(mcParticlePdgCode->at(iMCPart)==111) {
@@ -246,6 +255,7 @@ void test::Pi0AnalysisPlots::beginJob()
           pi0PhotonGlobalEventID.push_back(globalEventID);
           pi0PhotonTrackId.push_back(mcParticleTrackID->at(iMCPart));
           //std::cout << "debug iMCPart = " << iMCPart << " mcParticleTrackID->size = " << mcParticleTrackID->size() << std::endl;
+          //std::cout << "debug iMCPart = " << iMCPart << std::endl;
           pi0PhotonTrueEnergy.push_back(mcParticleEnergy->at(iMCPart));
            //std::cout << "deb0" << std::endl;
           pi0PhotonTrueDirectionX.push_back(mcParticleStartMomentumX->at(iMCPart)); 
@@ -258,6 +268,7 @@ void test::Pi0AnalysisPlots::beginJob()
           //std::cout << "pfpShowerTrueParticleMatchedId->size() = " << pfpShowerTrueParticleMatchedId->size() << std::endl;
           int nMatchedRecoShowers(0);
           for(std::vector<int>::size_type iPfp=0; iPfp<pfpShowerTrueParticleMatchedPosition->size(); iPfp++){
+            //std::cout << " nMatchedRecoShowers = " << nMatchedRecoShowers << " pfpShowerTrueParticleMatchedId->at(iPfp) = " << pfpShowerTrueParticleMatchedId->at(iPfp) << " mcParticleTrackID->at(iMCPart) = " << mcParticleTrackID->at(iMCPart) << std::endl;
             if(nMatchedRecoShowers==0 && (pfpShowerTrueParticleMatchedId->at(iPfp)==mcParticleTrackID->at(iMCPart))) {
               //std::cout << "And it matched to pfp at position = " << iPfp << std::endl;
               nMatchedRecoShowers++;
@@ -280,6 +291,7 @@ void test::Pi0AnalysisPlots::beginJob()
             }
             //If I already found a pfp matching to this MC particle, only replace if purity*completeness is higher
             else if(nMatchedRecoShowers==1 && (pfpShowerTrueParticleMatchedId->at(iPfp)==mcParticleTrackID->at(iMCPart))){
+              //std::cout << "found a better match. replacing..." << std::endl;
               double purity = pfpShowerPurity->at(iPfp);
               double completeness = pfpShowerCompleteness->at(iPfp);
               if(completeness*purity>pi0PhotonShowerCompleteness.back()*pi0PhotonShowerPurity.back()){
@@ -301,7 +313,6 @@ void test::Pi0AnalysisPlots::beginJob()
                 pi0PhotonTrueParticleNHitsW.back() = pfpShowerTrueParticleNHitsW->at(iPfp);
 
               }
-            else continue;
             }
           }
           if(!nMatchedRecoShowers){
@@ -315,12 +326,14 @@ void test::Pi0AnalysisPlots::beginJob()
               pi0PhotonShowerCompleteness.push_back(-999);
               pi0PhotonShowerPurity.push_back(-999);
               pi0PhotonShowerNHits.push_back(-999);
+              pi0PhotonShowerNHitsU.push_back(-999);
+              pi0PhotonShowerNHitsV.push_back(-999);
+              pi0PhotonShowerNHitsW.push_back(-999);
               pi0PhotonTrueParticleNHits.push_back(-999);
               pi0PhotonTrueParticleNHitsU.push_back(-999);
               pi0PhotonTrueParticleNHitsV.push_back(-999);
               pi0PhotonTrueParticleNHitsW.push_back(-999);
           }
-
           //std::cout << " photon index = " << pi0PhotonMotherPos.size() -1 << " pi0PhotonGlobalEventID = " << (int)pi0PhotonGlobalEventID.back() << " pi0PhotonTrueParticleNHitsU = " << pi0PhotonTrueParticleNHitsU.back() << " pi0PhotonMotherPos.size() = " << pi0PhotonMotherPos.size() << " pi0PhotonGlobalEventID.size() = " << (int)pi0PhotonGlobalEventID.size() << " pi0PhotonTrueParticleNHits.size() = " << pi0PhotonTrueParticleNHits.size() << std::endl;
           //Fill pi0 Efficiency calculation vectors
           /*if(((pi0PhotonMotherPos.size()-1)==118) || ((pi0PhotonMotherPos.size()-1)==119)){
@@ -346,6 +359,33 @@ void test::Pi0AnalysisPlots::beginJob()
             //std::cout << "iMCPart = "  << iMCPart << " iPhoton = " << pi0PhotonTrueParticleNHitsU.size() - 1 << " pi0PhotonTrueParticleNHitsU " << pi0PhotonTrueParticleNHitsU.back() << " pi0PhotonTrueParticleNHitsV " << pi0PhotonTrueParticleNHitsV.back() << " pi0PhotonTrueParticleNHitsW " << pi0PhotonTrueParticleNHitsW.back() << " pi0PhotonTrueEnergy " << pi0PhotonTrueEnergy.back() << " pi0PhotonShowerPurity " << pi0PhotonShowerPurity.back() << " pi0PhotonShowerCompleteness " << pi0PhotonShowerCompleteness.back() << std::endl;
           //std::cout << "iMc = " << iMCPart << " pi0PhotonMotherPos= " << pi0PhotonMotherPos.back() << std::endl;
           //std::cout << "debug: pi0PhotonMatchedPfpShowerMatchedTrackID = " << pi0PhotonMatchedPfpShowerMatchedTrackID.back() << " pi0PhotonTrackId = " << pi0PhotonTrackId.back() << std::endl;
+          //std::cout << "pi0PhotonGlobalEventID = " << pi0PhotonGlobalEventID.back() << " pi0PhotonTrueEnergy = " << pi0PhotonTrueEnergy.back() << std::endl;
+//     /*if(pi0PhotonShowerCompleteness.at(iPi0Phot)<0.9 || pi0PhotonShowerCompleteness.at(jPi0Phot)<0.9)*/std::cout << "iPhot = " << iPi0Phot << " jPhot = " << jPi0Phot << " global ev ID = " << pi0PhotonGlobalEventID.at(iPi0Phot) << " pi0PhotonShowerCompleteness.at(iPi0Phot) = " << pi0PhotonShowerCompleteness.at(iPi0Phot) << " pi0PhotonShowerCompleteness.at(jPi0Phot) = " << pi0PhotonShowerCompleteness.at(jPi0Phot) << " phot1 energy = " <<pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.at(iPi0Phot)/1000 << " phot2 energy = " << pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.at(jPi0Phot)/1000 << " true phot1 energy = " << pi0PhotonTrueEnergy.at(iPi0Phot) << " true phot2 energy = " << pi0PhotonTrueEnergy.at(jPi0Phot) << std::endl;
+        /*nPhotons++;
+        std::cout << "----------->DEBUG iPhoton = " << nPhotons << " event = " << globalEventID << " iMcParticle = " << iMCPart << std::endl;
+        std::cout << "pi0PhotonGlobalEventID size = " << pi0PhotonGlobalEventID.size() << " last element = " << pi0PhotonGlobalEventID.back() << std::endl;
+        std::cout << "pi0PhotonMotherPos size = " << pi0PhotonMotherPos.size() << " last element = " << pi0PhotonMotherPos.back() << std::endl;
+        std::cout << "pi0PhotonTrackID size = " << pi0PhotonTrackId.size() << " last element = " << pi0PhotonTrackId.back() << std::endl;
+        std::cout << "pi0PhotonTrueEnergy size = " << pi0PhotonTrueEnergy.size() << " last element = " << pi0PhotonTrueEnergy.back() << std::endl;
+        std::cout << "pi0PhotonTrueDirectionX size = " << pi0PhotonTrueDirectionX.size() << " last element = " << pi0PhotonTrueDirectionX.back() << std::endl;
+        std::cout << "pi0PhotonTrueDirectionY size = " << pi0PhotonTrueDirectionY.size() << " last element = " << pi0PhotonTrueDirectionY.back() << std::endl;
+        std::cout << "pi0PhotonTrueDirectionZ size = " << pi0PhotonTrueDirectionZ.size() << " last element = " << pi0PhotonTrueDirectionZ.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerPos size = " << pi0PhotonMatchedPfpShowerPos.size() << " last element = " << pi0PhotonMatchedPfpShowerPos.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerMatchedTrackID size = " << pi0PhotonMatchedPfpShowerMatchedTrackID.size() << " last element = " << pi0PhotonMatchedPfpShowerMatchedTrackID.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerCollectionPlaneEnergy size = " << pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.size() << " last element = " << pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerDirectionX size = " << pi0PhotonMatchedPfpShowerDirectionX.size() << " last element = " << pi0PhotonMatchedPfpShowerDirectionX.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerDirectionY size = " << pi0PhotonMatchedPfpShowerDirectionY.size() << " last element = " << pi0PhotonMatchedPfpShowerDirectionY.back() << std::endl;
+        std::cout << "pi0PhotonMatchedPfpShowerDirectionZ size = " << pi0PhotonMatchedPfpShowerDirectionZ.size() << " last element = " << pi0PhotonMatchedPfpShowerDirectionZ.back() << std::endl;
+        std::cout << "pi0PhotonShowerPurity size = " << pi0PhotonShowerPurity.size() << " last element = " << pi0PhotonShowerPurity.back() << std::endl;
+        std::cout << "pi0PhotonShowerCompleteness size = " << pi0PhotonShowerCompleteness.size() << " last element = " << pi0PhotonShowerCompleteness.back() << std::endl;
+        std::cout << "pi0PhotonShowerNHits size = " << pi0PhotonShowerNHits.size() << " last element = " << pi0PhotonShowerNHits.back() << std::endl;
+        std::cout << "pi0PhotonShowerNHitsU size = " << pi0PhotonShowerNHitsU.size() << " last element = " << pi0PhotonShowerNHitsU.back() << std::endl;
+        std::cout << "pi0PhotonShowerNHitsV size = " << pi0PhotonShowerNHitsV.size() << " last element = " << pi0PhotonShowerNHitsV.back() << std::endl;
+        std::cout << "pi0PhotonShowerNHitsW size = " << pi0PhotonShowerNHitsW.size() << " last element = " << pi0PhotonShowerNHitsW.back() << std::endl;
+        std::cout << "pi0PhotonTrueParticleNHits size = " << pi0PhotonTrueParticleNHits.size() << " last element = " << pi0PhotonTrueParticleNHits.back() << std::endl;
+        std::cout << "pi0PhotonTrueParticleNHitsU size = " << pi0PhotonTrueParticleNHitsU.size() << " last element = " << pi0PhotonTrueParticleNHitsU.back() << std::endl;
+        std::cout << "pi0PhotonTrueParticleNHitsV size = " << pi0PhotonTrueParticleNHitsV.size() << " last element = " << pi0PhotonTrueParticleNHitsV.back() << std::endl;
+        std::cout << "pi0PhotonTrueParticleNHitsW size = " << pi0PhotonTrueParticleNHitsW.size() << " last element = " << pi0PhotonTrueParticleNHitsW.back() << std::endl;*/
 
         }
       }
@@ -364,8 +404,8 @@ void test::Pi0AnalysisPlots::beginJob()
   int nPi0_onePhot_qualityCuts = std::count_if(pi0NPhotons_qualityCuts.begin(), pi0NPhotons_qualityCuts.end(), [](int i){return i == 1;}); 
   int nPi0_twoPhot_qualityCuts = std::count_if(pi0NPhotons_qualityCuts.begin(), pi0NPhotons_qualityCuts.end(), [](int i){return i == 2;}); 
 
-  std::cout << "N true pi0s = " << pi0NPhotons.size() << " nr pi0s with zero/one/two reco photon = " << nPi0_noPhot << " / " << nPi0_onePhot << " / " << nPi0_twoPhot << std::endl;
-  std::cout << "N true pi0s = " << pi0NPhotons.size() << " nr pi0s with zero/one/two reco photons with quality cuts = " << nPi0_noPhot_qualityCuts << " / " << nPi0_onePhot_qualityCuts << " / " << nPi0_twoPhot_qualityCuts << std::endl;
+  //std::cout << "N true pi0s = " << pi0NPhotons.size() << " nr pi0s with zero/one/two reco photon = " << nPi0_noPhot << " / " << nPi0_onePhot << " / " << nPi0_twoPhot << std::endl;
+  //std::cout << "N true pi0s = " << pi0NPhotons.size() << " nr pi0s with zero/one/two reco photons with quality cuts = " << nPi0_noPhot_qualityCuts << " / " << nPi0_onePhot_qualityCuts << " / " << nPi0_twoPhot_qualityCuts << std::endl;
   hReconstructedPhotonsPerPi0->SetBinContent(1,nPi0_noPhot);
   hReconstructedPhotonsPerPi0->SetBinContent(2,nPi0_onePhot);
   hReconstructedPhotonsPerPi0->SetBinContent(3,nPi0_twoPhot);
@@ -373,7 +413,7 @@ void test::Pi0AnalysisPlots::beginJob()
   hReconstructedPhotonsPerPi0_qualityCuts->SetBinContent(2,nPi0_onePhot_qualityCuts);
   hReconstructedPhotonsPerPi0_qualityCuts->SetBinContent(3,nPi0_twoPhot_qualityCuts);
   double effi = (double)nPi0_twoPhot_qualityCuts/pi0NPhotons.size();
-  std::cout << " pi0NPhotons.size() = " << pi0NPhotons.size() << " nPi0_noPhot = " << nPi0_noPhot << " nPi0_onePhot = " << nPi0_onePhot << " nPi0_twoPhot = " << nPi0_twoPhot << " efficiency = " << effi << std::endl;
+  //std::cout << " pi0NPhotons.size() = " << pi0NPhotons.size() << " nPi0_noPhot = " << nPi0_noPhot << " nPi0_onePhot = " << nPi0_onePhot << " nPi0_twoPhot = " << nPi0_twoPhot << " efficiency = " << effi << std::endl;
   hEfficiency->SetBinContent(1,effi);
   //Make pi0 mass plots
 
@@ -382,14 +422,19 @@ void test::Pi0AnalysisPlots::beginJob()
   std::vector<double> pi0Daughter2TrueEnergy, pi0Daughter2TrueDirectionX, pi0Daughter2TrueDirectionY, pi0Daughter2TrueDirectionZ;
   
   int nPhotonPairs(0); //for debug
+   //std::cout << " globalEventID = " << globalEventID << " DEBUG pi0PhotonMotherPos.size() = " << pi0PhotonMotherPos.size() << std::endl;
+
   for(long unsigned int iPi0Phot=0; iPi0Phot<pi0PhotonMotherPos.size(); iPi0Phot++){
-     if(pi0PhotonTrueParticleNHitsU.at(iPi0Phot)<0) continue;
+     //if(pi0PhotonTrueParticleNHitsU.at(iPi0Phot)<0) continue;
 
      //std::cout << "globalEventNumber = " << pi0PhotonGlobalEventID.at(iPi0Phot) << std::endl;
     //std::cout << "photon's mother position = " << pi0PhotonMotherPos.at(iPi0Phot) << std::endl;
     for(long unsigned int jPi0Phot=iPi0Phot+1; jPi0Phot<pi0PhotonMotherPos.size(); jPi0Phot++){
-     if(pi0PhotonTrueParticleNHitsU.at(jPi0Phot)<0) continue;
+
+     //if(pi0PhotonTrueParticleNHitsU.at(jPi0Phot)<0) continue;
      if(pi0PhotonMotherPos.at(iPi0Phot)==pi0PhotonMotherPos.at(jPi0Phot) && pi0PhotonGlobalEventID.at(iPi0Phot)==pi0PhotonGlobalEventID.at(jPi0Phot) && pi0PhotonMatchedPfpShowerPos.at(iPi0Phot)>=0 && pi0PhotonMatchedPfpShowerPos.at(jPi0Phot)>=0){
+     
+     if(pi0PhotonShowerCompleteness.at(iPi0Phot)<0.9 || pi0PhotonShowerCompleteness.at(jPi0Phot)<0.9)std::cout << "iPhot = " << iPi0Phot << " jPhot = " << jPi0Phot << " global ev ID = " << pi0PhotonGlobalEventID.at(iPi0Phot) << " pi0PhotonShowerCompleteness.at(iPi0Phot) = " << pi0PhotonShowerCompleteness.at(iPi0Phot) << " pi0PhotonShowerCompleteness.at(jPi0Phot) = " << pi0PhotonShowerCompleteness.at(jPi0Phot) << " phot1 energy = " <<pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.at(iPi0Phot)/1000 << " phot2 energy = " << pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.at(jPi0Phot)/1000 << " true phot1 energy = " << pi0PhotonTrueEnergy.at(iPi0Phot) << " true phot2 energy = " << pi0PhotonTrueEnergy.at(jPi0Phot) << std::endl;
 
      double recoPhot1Energy = pi0PhotonMatchedPfpShowerCollectionPlaneEnergy.at(iPi0Phot)/1000;
      double energyResValuePhot1 = (recoPhot1Energy-pi0PhotonTrueEnergy.at(iPi0Phot))/pi0PhotonTrueEnergy.at(iPi0Phot);
@@ -413,6 +458,7 @@ void test::Pi0AnalysisPlots::beginJob()
      hShowerPurityVsEnergyResolution->Fill(pi0PhotonShowerPurity.at(jPi0Phot),energyResValuePhot2);
      hEnergyResolution->Fill(energyResValuePhot1);
      hEnergyResolution->Fill(energyResValuePhot2);
+
 
      if(!PassesPhotonQualityCuts(pi0PhotonTrueParticleNHitsU.at(iPi0Phot),pi0PhotonTrueParticleNHitsV.at(iPi0Phot),pi0PhotonTrueParticleNHitsW.at(iPi0Phot), pi0PhotonTrueEnergy.at(iPi0Phot),pi0PhotonShowerPurity.at(iPi0Phot),pi0PhotonShowerCompleteness.at(iPi0Phot))) continue;
       if(!PassesPhotonQualityCuts(pi0PhotonTrueParticleNHitsU.at(jPi0Phot),pi0PhotonTrueParticleNHitsV.at(jPi0Phot),pi0PhotonTrueParticleNHitsW.at(jPi0Phot),pi0PhotonTrueEnergy.at(jPi0Phot),pi0PhotonShowerPurity.at(jPi0Phot),pi0PhotonShowerCompleteness.at(jPi0Phot))) continue;
@@ -449,7 +495,7 @@ void test::Pi0AnalysisPlots::beginJob()
         //std::cout << "true angle = " << angle << " " << " true inv mass = " << invMass <<std::endl;
         //std::cout << "reco phot 1 matchedID E mom: " << pi0PhotonMatchedPfpShowerMatchedTrackID.at(iPi0Phot) << " " << recoPhot1Energy << " " << pi0PhotonMatchedPfpShowerDirectionX.at(iPi0Phot) << " " << pi0PhotonMatchedPfpShowerDirectionY.at(iPi0Phot) << " " << pi0PhotonMatchedPfpShowerDirectionZ.at(iPi0Phot) << " completeness = " << pi0PhotonShowerCompleteness.at(iPi0Phot) << " purity = " << pi0PhotonShowerPurity.at(iPi0Phot) <<std::endl;
         //std::cout << "reco phot 2 matchedID E mom: " << pi0PhotonMatchedPfpShowerMatchedTrackID.at(jPi0Phot) << " " << recoPhot2Energy << " " << pi0PhotonMatchedPfpShowerDirectionX.at(jPi0Phot) << " " << pi0PhotonMatchedPfpShowerDirectionY.at(jPi0Phot) << " " << pi0PhotonMatchedPfpShowerDirectionZ.at(jPi0Phot) <<" completeness = " << pi0PhotonShowerCompleteness.at(jPi0Phot) << " purity = " << pi0PhotonShowerPurity.at(jPi0Phot) << std::endl;
-        //std::cout << "reco angle = " << recoAngle << " reco inv mass = " << recoInvMass << std::endl;
+        //std::cout << "global ev ID = " << pi0PhotonGlobalEventID.at(iPi0Phot) << " " << pi0PhotonGlobalEventID.at(jPi0Phot) << " reco angle = " << recoAngle << " reco inv mass = " << recoInvMass << std::endl;
         //Fill plots
         hTruePi0InvMass->Fill(invMass);
         hRecoPi0InvMass->Fill(recoInvMass);
@@ -475,7 +521,7 @@ void test::Pi0AnalysisPlots::beginJob()
     }
   }
   //hNTruePi0s_twoRecoPhotons->Fill(1);
-  std::cout << "nPhotonPairs = " << nPhotonPairs << std::endl;
+  //std::cout << "nPhotonPairs = " << nPhotonPairs << std::endl;
 }
 
 void test::Pi0AnalysisPlots::endJob()
