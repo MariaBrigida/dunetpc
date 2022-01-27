@@ -1,0 +1,27 @@
+#include "pi0AnalysisPlotsConfig.fcl"
+
+process_name: Pi0AnalysisPlots
+
+source:
+{
+  #module_type:	RootInput
+  #	       	maxEvents:	-1
+  module_type: EmptyEvent
+}
+
+services:
+{
+   #@table::dunefd_simulation_services
+   TFileService: { fileName: "pi0AnalysisPlotsOutput.root"}
+
+}
+
+physics:
+{
+   analyzers:
+   {
+      ana:	@local::pi0AnalysisPlots
+   }
+   path0:	[ ana ]
+   end_paths:	[ path0 ]
+}

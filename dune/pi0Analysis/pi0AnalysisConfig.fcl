@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+pi0Analysis:
+{
+  module_type:		"Pi0Analysis"
+   TruthLabel:		"largeant"
+   PFParticleLabel:     "pandora"
+   TrackLabel:          "pandoraTrack"
+   ShowerLabel:         "pandoraShower"
+   HitLabel:            "linecluster"
+   RollUpUnsavedIDs:	"true"
+   NMinimumShowerHits:  10
+   MinimumShowerEnergy: 10
+}
+
+END_PROLOG
