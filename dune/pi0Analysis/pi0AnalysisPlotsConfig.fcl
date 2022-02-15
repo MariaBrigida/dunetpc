@@ -3,6 +3,15 @@ BEGIN_PROLOG
 pi0AnalysisPlots:
 {
   module_type:		"Pi0AnalysisPlots"
-  TestFileName:        "pi0AnalysisOutput.root"
+  #TestFileName:			"pi0AnalysisOutput.root"
+  TestFileName:		"/dune/app/users/mbrunett/DUNE_v09_41_00_02/srcs/dunetpc/dune/pi0Analysis/standard_reco_nu/pi0AnalysisOutput_withFV.root"
+  #TestFileName:			"standard_reco_nu/pi0AnalysisOutput_200.root"
+  #TestFileName:		"/dune/app/users/mbrunett/DUNE_v09_41_00_02/srcs/dunetpc/dune/pi0Analysis/standard_reco_nu/pi0AnalysisOutput_200.root"
+  #TestFileName:		"step1_debug_standard_nu_1000.root"
+  #TestFileName:		"pi0AnalysisOutput_ev547_standard.root"
+  #TestFileName:		"pi0AnalysisOutput_ev547_cheated.root"
+  #TestFileName:		"pi0AnalysisOutput_ev603_cheated.root"
+  #TestFileName:	"pi0AnalysisOutput_ev603_standard.root"
+  #TestFileName:        "pi0AnalysisOutput_ev603_step1.root"
 }
 END_PROLOG
